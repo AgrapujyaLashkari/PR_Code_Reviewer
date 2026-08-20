@@ -4,6 +4,8 @@
 .idea/
 .vscode/
 
+
+
 # Dependencies
 node_modules/
 /node_modules
@@ -90,3 +92,5 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+
+.emergent/
