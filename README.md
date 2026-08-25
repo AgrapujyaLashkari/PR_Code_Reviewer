@@ -1,5 +1,5 @@
 > [!NOTE]
-> **Live Demo:** Deployment is currently underway and will be live shortly. You can run the application locally following the setup steps below.
+> **Live Demo:** Deployment is currently underway and will be live shortly. You can run the application locally with the setup steps in the setup.md file.
 # Sentry Graph — Autonomous Pull Request Security Reviewer
 
 A multi-agent system that inspects incoming pull requests for **security vulnerabilities, logic
