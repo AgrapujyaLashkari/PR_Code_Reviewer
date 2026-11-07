@@ -29,7 +29,7 @@ export function FileTree({
   onSelect,
 }: FileTreeProps) {
   return (
-    <nav aria-label="İncelenen dosyalar" className="flex flex-col">
+    <nav aria-label="Reviewed files" className="flex flex-col">
       {files.map((file) => {
         const isActive = file.path === activePath;
         const worst = worstByPath.get(file.path);
@@ -66,7 +66,7 @@ export function FileTree({
               </span>
               {worst !== undefined && (
                 <span className="text-muted mt-0.5 block text-xs">
-                  en yüksek: {SEVERITY_LABEL[worst].toLocaleLowerCase('tr')}
+                  highest: {SEVERITY_LABEL[worst].toLocaleLowerCase('en')}
                 </span>
               )}
             </span>

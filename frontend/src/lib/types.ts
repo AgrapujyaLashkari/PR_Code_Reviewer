@@ -21,11 +21,13 @@ export interface User {
   email: string;
   display_name: string;
   preferences: UserPreferences;
-  has_github_token: boolean;
+  github_id: number | undefined;
+  github_login: string | undefined;
+  github_connected: boolean;
 }
 
 export interface ReviewSource {
-  kind: 'upload' | 'paste' | 'pull_request' | 'ci';
+  kind: 'upload' | 'paste' | 'pull_request' | 'ci' | 'github_app';
   label: string;
   repo: string | undefined;
   pr_number: number | undefined;
@@ -119,10 +121,21 @@ export interface Patch {
 export interface Capabilities {
   default_model: string;
   available_models: string[];
-  ollama_reachable: boolean;
+  llm_reachable: boolean;
+  github_app_configured: boolean;
   static_analysers: string[];
   max_upload_mb: number;
   max_files_per_review: number;
+}
+
+export interface ConnectedRepo {
+  full_name: string;
+  owner: string;
+  name: string;
+  private: boolean;
+  enabled: boolean;
+  extra_guidelines: string;
+  installation_id: number;
 }
 
 export type ReviewEventType =

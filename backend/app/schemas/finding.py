@@ -217,9 +217,9 @@ class LlmFinding(BaseModel):
     line_end: int = Field(ge=1, description="Last line of the offending code")
     severity: Severity
     category: Category = Field(description="Closest matching category")
-    title: str = Field(description="One-line summary of the problem, in Turkish")
+    title: str = Field(description="One-line summary of the problem, in English")
     explanation: str = Field(
-        description="Why this is a problem and what an attacker gains, in Turkish"
+        description="Why this is a problem and what an attacker gains, in English"
     )
     suggested_fix: str | None = Field(
         default=None, description="Corrected code for these lines only, no prose"

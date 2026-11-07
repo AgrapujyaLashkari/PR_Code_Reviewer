@@ -67,6 +67,7 @@ def fan_out_agents(state: ReviewState) -> list[Send] | str:
                 "files": files,
                 "static_findings": relevant,
                 "injection_flags": flags,
+                "repo_guidelines": state.get("repo_guidelines", ""),
             }
             sends.append(Send("layer_agent", task))
 

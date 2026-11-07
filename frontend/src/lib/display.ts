@@ -10,11 +10,11 @@ import type { Layer, Lens, Origin, Severity } from '@/lib/types';
 export const SEVERITY_ORDER: Severity[] = ['critical', 'high', 'medium', 'low', 'info'];
 
 export const SEVERITY_LABEL: Record<Severity, string> = {
-  critical: 'Kritik',
-  high: 'Yüksek',
-  medium: 'Orta',
-  low: 'Düşük',
-  info: 'Bilgi',
+  critical: 'Critical',
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+  info: 'Info',
 };
 
 /**
@@ -53,26 +53,26 @@ export const SEVERITY_TEXT: Record<Severity, string> = {
 export const LAYER_LABEL: Record<Layer, string> = {
   frontend: 'Frontend',
   backend: 'Backend',
-  database: 'Veritabanı',
-  config_infra: 'Config & Altyapı',
-  generic: 'Genel',
+  database: 'Database',
+  config_infra: 'Config & infra',
+  generic: 'Generic',
 };
 
 export const LENS_LABEL: Record<Lens, string> = {
-  security: 'güvenlik',
-  quality: 'kalite',
+  security: 'security',
+  quality: 'quality',
 };
 
 export const ORIGIN_LABEL: Record<Origin, string> = {
-  static: 'Statik analiz',
-  llm: 'Ajan',
-  hybrid: 'Ajan + statik doğrulama',
+  static: 'Static analysis',
+  llm: 'Agent',
+  hybrid: 'Agent + static confirmation',
 };
 
 export const ORIGIN_HINT: Record<Origin, string> = {
-  static: 'Deterministik bir araç tarafından bulundu.',
-  llm: 'Yalnızca dil modeli tarafından raporlandı; statik araçlar doğrulamadı.',
-  hybrid: 'Ajan raporladı ve bağımsız bir statik analiz aracı aynı kusuru doğruladı.',
+  static: 'Found by a deterministic tool.',
+  llm: 'Reported only by the language model; static tools did not confirm it.',
+  hybrid: 'The agent reported it and an independent static analyser confirmed the same defect.',
 };
 
 export function riskLabel(score: number): {
@@ -83,30 +83,30 @@ export function riskLabel(score: number): {
 } {
   if (score >= 60)
     return {
-      label: 'Kritik risk',
+      label: 'Critical risk',
       className: 'text-severity-critical',
       color: 'var(--severity-critical)',
     };
   if (score >= 30)
     return {
-      label: 'Yüksek risk',
+      label: 'High risk',
       className: 'text-severity-high',
       color: 'var(--severity-high)',
     };
   if (score >= 10)
     return {
-      label: 'Orta risk',
+      label: 'Medium risk',
       className: 'text-severity-medium',
       color: 'var(--severity-medium)',
     };
   if (score > 0)
     return {
-      label: 'Düşük risk',
+      label: 'Low risk',
       className: 'text-severity-low',
       color: 'var(--severity-low)',
     };
   return {
-    label: 'Güvenlik bulgusu yok',
+    label: 'No security findings',
     className: 'text-verified',
     color: 'var(--verified)',
   };

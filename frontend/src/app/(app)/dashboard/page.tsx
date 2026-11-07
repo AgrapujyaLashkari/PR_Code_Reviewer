@@ -14,14 +14,15 @@ const SOURCE_ICON = {
   upload: Upload,
   paste: FileText,
   pull_request: GitPullRequest,
+  github_app: GitPullRequest,
   ci: Terminal,
 } as const;
 
 const STATUS_LABEL = {
-  queued: 'Sırada',
-  running: 'Çalışıyor',
-  completed: 'Tamamlandı',
-  failed: 'Başarısız',
+  queued: 'Queued',
+  running: 'Running',
+  completed: 'Completed',
+  failed: 'Failed',
 } as const;
 
 export default function DashboardPage() {
@@ -38,7 +39,7 @@ export default function DashboardPage() {
           if (!isCancelled()) setReviews(loaded);
         })
         .catch(() => {
-          if (!isCancelled()) setError('İncelemeler yüklenemedi.');
+          if (!isCancelled()) setError('Could not load reviews.');
         }),
     [],
   );
@@ -65,9 +66,9 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-[1400px] px-4 py-8">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-title">İncelemeler</h1>
+          <h1 className="text-title">Reviews</h1>
           <p className="text-muted mt-1 text-sm">
-            Yüklediğin kod katmanlara ayrılır ve her katmana ayrı bir ajan bakar.
+            Submitted code is split by layer and reviewed by a dedicated agent on each one.
           </p>
         </div>
       </div>
@@ -77,16 +78,16 @@ export default function DashboardPage() {
       {reviews === undefined ? (
         <div className="text-muted flex items-center gap-2 py-12 text-sm">
           <Spinner />
-          Yükleniyor…
+          Loading…
         </div>
       ) : reviews.length === 0 ? (
         <EmptyState
-          title="Henüz inceleme yok"
-          description="Bir dosya yükle, kod yapıştır ya da bir GitHub pull request adresi ver; sistem güvenlik ve kalite ajanlarını çalıştırsın."
+          title="No reviews yet"
+          description="Upload a file, paste code, or give a GitHub pull request URL to run the security and quality agents."
           action={
             <Link href="/reviews/new" className="mt-2">
               <Button variant="primary" size="sm">
-                İlk incelemeyi başlat
+                Start the first review
               </Button>
             </Link>
           }
@@ -120,7 +121,7 @@ function ReviewRow({ review }: { review: ReviewSummary }) {
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">
-            {review.source.label || 'İsimsiz inceleme'}
+            {review.source.label || 'Untitled review'}
           </p>
           <p className="text-muted mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
             <span>{formatRelativeTime(review.created_at)}</span>
@@ -152,7 +153,7 @@ function ReviewRow({ review }: { review: ReviewSummary }) {
               })}
             </div>
             <p className="text-muted mt-1 text-right text-xs tabular-nums">
-              {total} bulgu
+              {total} {total === 1 ? 'finding' : 'findings'}
             </p>
           </div>
         )}

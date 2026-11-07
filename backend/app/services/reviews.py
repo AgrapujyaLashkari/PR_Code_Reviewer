@@ -24,6 +24,7 @@ from app.db.models import (
     ReviewSource,
     ReviewStats,
     ReviewStatus,
+    SourceKind,
     User,
 )
 from app.events.bus import EventType, emit
@@ -38,7 +39,11 @@ RECURSION_LIMIT = 60
 
 
 async def create_review(
-    user: User, source: ReviewSource, files: list[SourceFile]
+    user: User,
+    source: ReviewSource,
+    files: list[SourceFile],
+    *,
+    repo_guidelines: str = "",
 ) -> Review:
     """Persist a submission and return the queued review."""
     review = Review(
@@ -46,6 +51,7 @@ async def create_review(
         source=source,
         status=ReviewStatus.QUEUED,
         llm_model=user.preferences.llm_model or settings.llm_model,
+        repo_guidelines=repo_guidelines,
     )
     await review.insert()
 
@@ -96,7 +102,7 @@ async def run_review(review_id: PydanticObjectId) -> None:
     await emit(
         str(review.id),
         EventType.REVIEW_STARTED,
-        message=f"{len(files)} dosya, model {review.llm_model}",
+        message=f"{len(files)} files, model {review.llm_model}",
         file_count=len(files),
         llm_model=review.llm_model,
     )
@@ -108,15 +114,16 @@ async def run_review(review_id: PydanticObjectId) -> None:
                 "review_id": str(review.id),
                 "llm_model": review.llm_model,
                 "files": files,
+                "repo_guidelines": review.repo_guidelines,
             },
             {"recursion_limit": RECURSION_LIMIT},
         )
     except LlmUnavailable as exc:
-        await _fail(review, f"Yerel model kullanılamıyor: {exc}", started)
+        await _fail(review, f"Gemini is not available: {exc}", started)
         return
     except Exception as exc:
         logger.exception("Review %s failed", review.id)
-        await _fail(review, f"İnceleme sırasında hata: {exc}", started)
+        await _fail(review, f"Error during review: {exc}", started)
         return
 
     findings: list[Finding] = result.get("findings", [])
@@ -132,11 +139,12 @@ async def run_review(review_id: PydanticObjectId) -> None:
     review.duration_ms = int((time.perf_counter() - started) * 1000)
     review.finished_at = _now()
     await review.save()
+    await _maybe_comment_on_github(review, findings)
 
     await emit(
         str(review.id),
         EventType.REVIEW_COMPLETED,
-        message=f"{len(findings)} bulgu, risk skoru {review.risk_score}",
+        message=f"{len(findings)} findings, risk score {review.risk_score}",
         risk_score=review.risk_score,
         finding_count=len(findings),
         duration_ms=review.duration_ms,
@@ -212,6 +220,33 @@ def _build_stats(
         files_analysed=len(files),
         suppressed_low_confidence=result.get("suppressed_low_confidence", 0),
     )
+
+
+async def _maybe_comment_on_github(review: Review, findings: list[Finding]) -> None:
+    from app.github_app.comments import post_pull_request_review
+
+    source = review.source
+    if source.kind not in (SourceKind.GITHUB_APP, SourceKind.PULL_REQUEST):
+        return
+    if not source.repo or source.pr_number is None or not source.commit_sha:
+        return
+    if source.installation_id is None:
+        return
+    owner, _, name = source.repo.partition("/")
+    if not owner or not name:
+        return
+    try:
+        await post_pull_request_review(
+            owner=owner,
+            repo=name,
+            pr_number=source.pr_number,
+            commit_sha=source.commit_sha,
+            installation_id=source.installation_id,
+            findings=findings,
+            risk_score=review.risk_score,
+        )
+    except Exception as exc:
+        logger.warning("Could not post GitHub review comments: %s", exc)
 
 
 def _now():

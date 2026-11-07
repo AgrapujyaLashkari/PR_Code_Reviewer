@@ -27,8 +27,8 @@ export function AgentProgress({
         {connected
           ? // Progress events are not replayed, so a client that connects
             // part-way through has genuinely missed the earlier stages.
-            'İnceleme sürüyor. Bu bağlantıdan sonraki aşamalar burada görünecek.'
-          : 'İlerleme akışına bağlanılıyor…'}
+            'Review in progress. Stages after this connection will appear here.'
+          : 'Connecting to the progress stream…'}
       </div>
     );
   }
@@ -37,13 +37,15 @@ export function AgentProgress({
 
   return (
     <section
-      aria-label="İnceleme ilerlemesi"
+      aria-label="Review progress"
       aria-live="polite"
       className="border-border-default overflow-hidden rounded-lg border"
     >
       <header className="border-border-default bg-surface flex items-center justify-between border-b px-4 py-2">
         <span className="text-sm font-medium">
-          {running > 0 ? `${running} aşama çalışıyor` : 'Aşamalar tamamlandı'}
+          {running > 0
+            ? `${running} ${running === 1 ? 'stage running' : 'stages running'}`
+            : 'Stages complete'}
         </span>
         <span className="text-muted font-mono text-xs tabular-nums">
           {stages.filter((s) => s.status === 'done').length}/{stages.length}

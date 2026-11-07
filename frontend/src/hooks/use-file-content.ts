@@ -71,7 +71,7 @@ export function useFileContent(
       })
       .catch(() => {
         if (!cancelled) {
-          setSettled({ key, content: undefined, error: 'Dosya içeriği yüklenemedi.' });
+          setSettled({ key, content: undefined, error: 'Could not load file contents.' });
         }
       });
 

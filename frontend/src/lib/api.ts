@@ -8,6 +8,7 @@
 
 import type {
   Capabilities,
+  ConnectedRepo,
   FileContent,
   Finding,
   FindingStatus,
@@ -61,7 +62,7 @@ async function readError(response: Response): Promise<string> {
   } catch {
     // Fall through to the status text.
   }
-  return response.statusText || 'İstek başarısız oldu';
+  return response.statusText || 'Request failed';
 }
 
 async function refreshAccessToken(): Promise<boolean> {
@@ -172,8 +173,33 @@ export const api = {
   updatePreferences: (body: {
     llm_model?: string;
     min_severity?: string;
-    github_token?: string;
   }): Promise<User> => request<User>('/api/v1/auth/me', { method: 'PATCH', body }),
+
+  githubLoginUrl: (): string => `${API_BASE}/api/v1/auth/github`,
+
+  githubInstallUrl: (): Promise<{ url: string; configured: boolean }> =>
+    request<{ url: string; configured: boolean }>('/api/v1/github/install-url'),
+
+  listRepos: (): Promise<ConnectedRepo[]> =>
+    request<ConnectedRepo[]>('/api/v1/github/repos'),
+
+  syncRepos: (): Promise<ConnectedRepo[]> =>
+    request<ConnectedRepo[]>('/api/v1/github/repos/sync', { method: 'POST' }),
+
+  updateRepo: (
+    fullName: string,
+    body: { enabled?: boolean; extra_guidelines?: string },
+  ): Promise<ConnectedRepo> =>
+    request<ConnectedRepo>(`/api/v1/github/repos/${fullName}`, {
+      method: 'PATCH',
+      body,
+    }),
+
+  completeGithubInstall: (installationId: number): Promise<void> =>
+    request<void>('/api/v1/github/installations', {
+      method: 'POST',
+      body: { installation_id: installationId },
+    }),
 
   capabilities: (): Promise<Capabilities> =>
     request<Capabilities>('/api/v1/system/capabilities'),

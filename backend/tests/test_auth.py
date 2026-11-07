@@ -42,7 +42,8 @@ async def test_login_then_me_round_trip(client: AsyncClient) -> None:
 
     assert me.status_code == 200
     assert me.json()["email"] == CREDENTIALS["email"]
-    assert me.json()["has_github_token"] is False
+    assert me.json()["github_connected"] is False
+    assert me.json()["github_login"] is None
 
 
 async def test_login_with_wrong_password_is_rejected(client: AsyncClient) -> None:

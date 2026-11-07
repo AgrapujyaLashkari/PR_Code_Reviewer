@@ -108,8 +108,8 @@ export function FileCard({
         </button>
 
         <span className="text-muted hidden shrink-0 font-mono text-xs sm:inline">
-          {file.line_count} satır
-          {file.truncated && ' · kırpıldı'}
+          {file.line_count} lines
+          {file.truncated && ' · truncated'}
         </span>
 
         <div className="ml-auto flex shrink-0 items-center gap-3">
@@ -139,7 +139,7 @@ export function FileCard({
               onChange={onToggleViewed}
               className="accent-accent size-3.5"
             />
-            Görüldü
+            Viewed
           </label>
         </div>
       </header>
@@ -153,7 +153,7 @@ export function FileCard({
           ) : content === undefined ? (
             <p className="text-muted flex items-center gap-2 px-4 py-6 text-sm">
               <Spinner />
-              Dosya yükleniyor…
+              Loading file…
             </p>
           ) : (
             <CodeViewer
@@ -167,7 +167,8 @@ export function FileCard({
         {!expanded && (
           <p className="text-muted px-4 py-2.5 text-xs">
             {file.layers.map((layer) => LAYER_LABEL[layer as Layer] ?? layer).join(' · ')}
-            {findings.length > 0 && ` · ${findings.length} bulgu`}
+            {findings.length > 0 &&
+              ` · ${findings.length} ${findings.length === 1 ? 'finding' : 'findings'}`}
           </p>
         )}
       </div>

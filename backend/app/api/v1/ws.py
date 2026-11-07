@@ -102,9 +102,9 @@ def _terminal_event(review: Review) -> ReviewEvent:
         review_id=str(review.id),
         stage="report",
         message=(
-            f"{review.stats.total_findings} bulgu, risk skoru {review.risk_score}"
+            f"{review.stats.total_findings} findings, risk score {review.risk_score}"
             if completed
-            else (review.error or "İnceleme başarısız oldu")
+            else (review.error or "The review failed")
         ),
         payload={
             "risk_score": review.risk_score,

@@ -44,8 +44,8 @@ export function ReviewToolbar({
     <div className="bg-background/85 border-border-default sticky top-[var(--app-header-height)] z-30 -mx-4 mb-4 border-b px-4 py-2.5 backdrop-blur">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <p className="text-sm font-medium tabular-nums">
-          {fileCount} dosya
-          {present.length === 0 && <span className="text-muted"> · bulgu yok</span>}
+          {fileCount} {fileCount === 1 ? 'file' : 'files'}
+          {present.length === 0 && <span className="text-muted"> · no findings</span>}
         </p>
 
         {present.length > 0 && (
@@ -88,16 +88,16 @@ export function ReviewToolbar({
               type="search"
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="Dosya ara…"
-              aria-label="Dosya ara"
+              placeholder="Search files…"
+              aria-label="Search files"
               className="border-border-default bg-surface placeholder:text-muted hover:border-accent-ring focus:border-accent h-7 w-40 rounded-md border pr-2 pl-7 text-xs transition-colors focus:outline-none sm:w-52"
             />
           </div>
           <Button size="sm" variant="ghost" onClick={onExpandAll}>
-            Tümünü aç
+            Expand all
           </Button>
           <Button size="sm" variant="ghost" onClick={onCollapseAll}>
-            Tümünü kapat
+            Collapse all
           </Button>
         </div>
       </div>

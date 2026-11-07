@@ -18,8 +18,8 @@ import { cn } from '@/lib/utils';
 type Tab = 'upload' | 'paste' | 'pull_request';
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'upload', label: 'Dosya / ZIP yükle' },
-  { id: 'paste', label: 'Kod yapıştır' },
+  { id: 'upload', label: 'Upload files / ZIP' },
+  { id: 'paste', label: 'Paste code' },
   { id: 'pull_request', label: 'GitHub PR' },
 ];
 
@@ -70,7 +70,7 @@ export default function NewReviewPage() {
       setError(
         caught instanceof ApiError
           ? caught.message
-          : 'İnceleme başlatılamadı. Backend çalışıyor mu?',
+          : 'Could not start the review. Is the backend running?',
       );
       setSubmitting(false);
     }
@@ -85,24 +85,24 @@ export default function NewReviewPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-title">Yeni inceleme</h1>
+      <h1 className="text-title">New review</h1>
       <p className="text-muted mt-1 text-sm">
-        Kod katmanlara ayrılır; her katmana güvenlik ve kalite lensleriyle ayrı bir ajan
-        bakar, bulgular statik analizle çapraz doğrulanır.
+        Code is split by layer. A separate agent reviews each layer for security and
+        quality, then findings are cross-checked with static analysis.
       </p>
 
-      {capabilities !== undefined && !capabilities.ollama_reachable && (
+      {capabilities !== undefined && !capabilities.llm_reachable && (
         <div className="mt-4">
           <Alert>
-            Ollama’ya ulaşılamıyor. Ajanlar çalışmayacak; yalnızca statik analiz sonuçları
-            üretilir. <code>ollama serve</code> ile başlatabilirsin.
+            Gemini is not configured. Agent reviews need <code>GEMINI_API_KEY</code> in
+            the server environment. Static analysis still runs.
           </Alert>
         </div>
       )}
 
       <div
         role="tablist"
-        aria-label="Girdi kaynağı"
+        aria-label="Input source"
         className="border-border-default mt-6 flex gap-1 border-b"
       >
         {TABS.map((item) => (
@@ -130,7 +130,7 @@ export default function NewReviewPage() {
         {tab === 'upload' && (
           <Card className="p-4">
             <label htmlFor="files" className="text-sm font-medium">
-              Kaynak dosyalar
+              Source files
             </label>
             <input
               id="files"
@@ -141,10 +141,10 @@ export default function NewReviewPage() {
               className="text-muted file:border-border-default file:bg-surface file:text-foreground hover:file:border-accent-ring mt-2 block w-full text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:px-3 file:py-1.5 file:text-sm file:transition-colors"
             />
             <p className="text-muted mt-2 text-xs">
-              Python, TypeScript/JavaScript, SQL, YAML, Dockerfile ve benzeri metin
-              dosyaları. ZIP arşivi açılır
+              Python, TypeScript/JavaScript, SQL, YAML, Dockerfile, and similar text
+              files. ZIP archives are unpacked
               {capabilities !== undefined &&
-                ` (en fazla ${capabilities.max_upload_mb} MB, ${capabilities.max_files_per_review} dosya)`}
+                ` (max ${capabilities.max_upload_mb} MB, ${capabilities.max_files_per_review} files)`}
               .
             </p>
             {files.length > 0 && (
@@ -162,23 +162,23 @@ export default function NewReviewPage() {
         {tab === 'paste' && (
           <Card className="flex flex-col gap-3 p-4">
             <Field
-              label="Dosya adı"
+              label="File name"
               name="filename"
               value={filename}
               onChange={(event) => setFilename(event.target.value)}
-              hint="Uzantı dili belirler: .py, .ts, .tsx, .sql…"
+              hint="The extension sets the language: .py, .ts, .tsx, .sql…"
             />
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <label htmlFor="code" className="text-sm font-medium">
-                  Kod
+                  Code
                 </label>
                 <button
                   type="button"
                   onClick={() => setCode(SAMPLE)}
                   className="text-accent text-xs hover:underline"
                 >
-                  Örnek zafiyetli kodu doldur
+                  Fill with sample vulnerable code
                 </button>
               </div>
               <TextArea
@@ -187,7 +187,7 @@ export default function NewReviewPage() {
                 value={code}
                 spellCheck={false}
                 onChange={(event) => setCode(event.target.value)}
-                placeholder="İncelenecek kodu buraya yapıştır…"
+                placeholder="Paste the code to review…"
               />
             </div>
           </Card>
@@ -196,13 +196,13 @@ export default function NewReviewPage() {
         {tab === 'pull_request' && (
           <Card className="p-4">
             <Field
-              label="Pull request adresi"
+              label="Pull request URL"
               name="pr"
               type="url"
               value={prUrl}
               onChange={(event) => setPrUrl(event.target.value)}
               placeholder="https://github.com/owner/repo/pull/123"
-              hint="Yalnızca pull request'in değiştirdiği satırlar incelenir. Özel repo için Ayarlar'dan GitHub token ekle."
+              hint="Only the PR's changed lines are reviewed. The repo must be connected under Repositories (GitHub App). Opened PRs are reviewed automatically."
             />
           </Card>
         )}
@@ -210,12 +210,12 @@ export default function NewReviewPage() {
         <div className="flex items-center gap-3">
           <Button type="submit" variant="primary" disabled={!canSubmit || submitting}>
             {submitting && <Spinner />}
-            İncelemeyi başlat
+            Start review
           </Button>
           {capabilities !== undefined && (
             <span className="text-muted text-xs">
               Model: <code className="font-mono">{capabilities.default_model}</code> ·
-              Araçlar: {capabilities.static_analysers.join(', ')}
+              Tools: {capabilities.static_analysers.join(', ')}
             </span>
           )}
         </div>

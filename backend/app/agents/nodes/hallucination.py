@@ -39,7 +39,7 @@ async def hallucination_check(state: ReviewState) -> dict:
         review_id,
         EventType.NODE_STARTED,
         stage=STAGE,
-        message="Düşük güvenli bulgular ve var olmayan bağımlılıklar kontrol ediliyor",
+        message="Checking low-confidence findings and unknown dependencies",
     )
 
     kept: list[Finding] = []
@@ -64,9 +64,9 @@ async def hallucination_check(state: ReviewState) -> dict:
         EventType.NODE_FINISHED,
         stage=STAGE,
         message=(
-            f"{suppressed} düşük güvenli bulgu elendi"
+            f"Dropped {suppressed} low-confidence findings"
             if suppressed
-            else "Elenen bulgu yok"
+            else "No findings dropped"
         ),
         suppressed=suppressed,
         kept=len(kept),
@@ -98,14 +98,13 @@ async def _dependency_findings(state: ReviewState) -> list[Finding]:
                     line_end=line,
                     severity=Severity.MEDIUM,
                     category=Category.UNPINNED_DEPENDENCY,
-                    title=f"`{name}` paketi {ecosystem} kayıtlarında bulunamadı",
+                    title=f"`{name}` was not found in the {ecosystem} registry",
                     explanation=(
-                        f"`{name}` içe aktarılıyor ancak {ecosystem} üzerinde böyle "
-                        "bir paket yok. Ya isim yanlış yazılmış, ya paket özel bir "
-                        "kayıt defterinde, ya da var olmayan bir kütüphane "
-                        "(halüsinasyon). Kurulum bu haliyle başarısız olur; "
-                        "benzer isimli bir paketin devralınmış olma ihtimali de "
-                        "tedarik zinciri riski taşır."
+                        f"`{name}` is imported, but no such package exists on "
+                        f"{ecosystem}. The name may be misspelled, the package may "
+                        "live on a private registry, or this is a hallucinated "
+                        "library. Install will fail as written, and a similarly "
+                        "named package being taken over is a supply-chain risk."
                     ),
                     origin=Origin.STATIC,
                     tool=TOOL_NAME,

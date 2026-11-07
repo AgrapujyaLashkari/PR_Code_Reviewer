@@ -55,7 +55,7 @@ export function FindingThread({ finding, onStatusChange, busy }: FindingThreadPr
         <span className="text-sm font-semibold">{finding.title}</span>
         {resolved && (
           <span className="bg-surface-overlay text-muted ring-border-default rounded-full px-2 py-0.5 text-xs ring-1 ring-inset">
-            {finding.status === 'dismissed' ? 'Yok sayıldı' : 'Çözüldü'}
+            {finding.status === 'dismissed' ? 'Dismissed' : 'Resolved'}
           </span>
         )}
       </div>
@@ -88,9 +88,9 @@ export function FindingThread({ finding, onStatusChange, busy }: FindingThreadPr
           <MetaChip>{finding.owasp}</MetaChip>
         )}
         {finding.cwe != null && finding.cwe !== '' && <MetaChip>{finding.cwe}</MetaChip>}
-        <MetaChip>güven {(finding.confidence * 100).toFixed(0)}%</MetaChip>
+        <MetaChip>confidence {(finding.confidence * 100).toFixed(0)}%</MetaChip>
         <MetaChip>
-          satır {finding.line_start}
+          line {finding.line_start}
           {finding.line_end !== finding.line_start && `–${finding.line_end}`}
         </MetaChip>
       </div>
@@ -108,7 +108,7 @@ export function FindingThread({ finding, onStatusChange, busy }: FindingThreadPr
             ) : (
               <ChevronRight aria-hidden className="size-3.5" />
             )}
-            Önerilen düzeltme
+            Suggested fix
           </button>
           {showFix && (
             <pre className="code-surface bg-verified-soft border-verified-ring text-foreground mt-2 overflow-x-auto rounded-md border p-3">
@@ -128,7 +128,7 @@ export function FindingThread({ finding, onStatusChange, busy }: FindingThreadPr
               onClick={() => onStatusChange('resolved')}
             >
               <Check aria-hidden className="size-3.5" />
-              Çözüldü olarak işaretle
+              Mark as resolved
             </Button>
             <Button
               size="sm"
@@ -137,7 +137,7 @@ export function FindingThread({ finding, onStatusChange, busy }: FindingThreadPr
               onClick={() => onStatusChange('dismissed')}
             >
               <X aria-hidden className="size-3.5" />
-              Yok say
+              Dismiss
             </Button>
           </>
         ) : (
@@ -147,7 +147,7 @@ export function FindingThread({ finding, onStatusChange, busy }: FindingThreadPr
             disabled={busy}
             onClick={() => onStatusChange('open')}
           >
-            Yeniden aç
+            Reopen
           </Button>
         )}
       </div>

@@ -61,7 +61,7 @@ export default function ReviewPage() {
           setTab((current) => (current === 'conversation' ? 'files' : current));
         })
         .catch(() => {
-          if (!isCancelled()) setError('İnceleme yüklenemedi.');
+          if (!isCancelled()) setError('Could not load the review.');
         }),
     [reviewId],
   );
@@ -124,7 +124,7 @@ export default function ReviewPage() {
       anchor.remove();
       URL.revokeObjectURL(url);
     } catch {
-      setError('Düzeltilmiş kod indirilemedi.');
+      setError('Could not download the refactored code.');
     }
   }
 
@@ -140,7 +140,7 @@ export default function ReviewPage() {
     return (
       <div className="text-muted flex items-center justify-center gap-2 py-16 text-sm">
         <Spinner />
-        Yükleniyor…
+        Loading…
       </div>
     );
   }
@@ -159,7 +159,7 @@ export default function ReviewPage() {
               <span className="truncate">{review.source.label}</span>
             </h1>
             <p className="text-muted mt-1 text-sm">
-              {review.stats.files_analysed || review.files.length} dosya ·{' '}
+              {review.stats.files_analysed || review.files.length} files ·{' '}
               <code className="font-mono">{review.llm_model}</code>
               {review.source.commit_sha !== undefined &&
                 review.source.commit_sha !== null && (
@@ -178,30 +178,30 @@ export default function ReviewPage() {
             {patches.length > 0 && (
               <Button size="sm" variant="secondary" onClick={() => void handleDownload()}>
                 <Download aria-hidden className="size-3.5" />
-                Düzeltilmiş kodu indir
+                Download refactored code
               </Button>
             )}
             <Button size="sm" variant="ghost" onClick={() => void handleDelete()}>
               <Trash2 aria-hidden className="size-3.5" />
-              Sil
+              Delete
             </Button>
           </div>
         </div>
 
-        <nav role="tablist" aria-label="İnceleme bölümleri" className="-mb-px flex gap-1">
-          <TabButton id="conversation" active={tab} onSelect={setTab} label="Özet" />
+        <nav role="tablist" aria-label="Review sections" className="-mb-px flex gap-1">
+          <TabButton id="conversation" active={tab} onSelect={setTab} label="Summary" />
           <TabButton
             id="files"
             active={tab}
             onSelect={setTab}
-            label="Dosyalar"
+            label="Files"
             count={review.files.length}
           />
           <TabButton
             id="checks"
             active={tab}
             onSelect={setTab}
-            label="Düzeltmeler"
+            label="Fixes"
             count={patches.length}
           />
         </nav>
@@ -209,7 +209,7 @@ export default function ReviewPage() {
 
       {review.status === 'failed' && (
         <div className="mt-4">
-          <Alert>{review.error ?? 'İnceleme başarısız oldu.'}</Alert>
+          <Alert>{review.error ?? 'The review failed.'}</Alert>
         </div>
       )}
 
@@ -313,13 +313,13 @@ function ConversationTab({
       <div className="min-w-0">
         {review.status === 'completed' && allFindings.length === 0 ? (
           <EmptyState
-            title="Bulgu yok"
-            description="Ne statik analiz araçları ne de ajanlar bu kodda raporlanacak bir kusur buldu."
+            title="No findings"
+            description="Neither static analysis nor the agents found a defect worth reporting in this code."
           />
         ) : ranked.length === 0 && allFindings.length > 0 ? (
           <EmptyState
-            title="Açık bulgu kalmadı"
-            description="Tüm bulgular çözüldü ya da yok sayıldı. Dosyalar sekmesinden hepsini görebilirsin."
+            title="No open findings left"
+            description="Every finding was resolved or dismissed. Open the Files tab to see them all."
           />
         ) : (
           <ul className="flex flex-col gap-3">
@@ -431,9 +431,9 @@ function FilesTab({
   // A severity filter narrows the file list too: asking for "critical only"
   // and still being handed forty clean files is not a filter.
   const visible = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase('tr');
+    const needle = query.trim().toLocaleLowerCase('en');
     return ordered.filter((file) => {
-      if (needle !== '' && !file.path.toLocaleLowerCase('tr').includes(needle)) {
+      if (needle !== '' && !file.path.toLocaleLowerCase('en').includes(needle)) {
         return false;
       }
       if (severityFilter.size === 0) return true;
@@ -490,7 +490,7 @@ function FilesTab({
   }
 
   if (review.files.length === 0) {
-    return <EmptyState title="Dosya yok" description="Bu incelemede dosya bulunmuyor." />;
+    return <EmptyState title="No files" description="This review has no files." />;
   }
 
   return (
@@ -527,8 +527,8 @@ function FilesTab({
         <div className="min-w-0">
           {visible.length === 0 ? (
             <EmptyState
-              title="Eşleşen dosya yok"
-              description="Arama terimini değiştir ya da şiddet filtresini kaldır."
+              title="No matching files"
+              description="Change the search term or clear the severity filter."
             />
           ) : (
             <ul className="flex flex-col gap-4">
@@ -563,8 +563,8 @@ function ChecksTab({ patches }: { patches: Patch[] }) {
   if (patches.length === 0) {
     return (
       <EmptyState
-        title="Düzeltme üretilmedi"
-        description="Refactor ajanı yalnızca orta ve üzeri önem derecesindeki bulgular için düzeltme üretir."
+        title="No fixes generated"
+        description="The refactor agent only produces fixes for medium-or-higher findings."
       />
     );
   }
@@ -577,7 +577,8 @@ function ChecksTab({ patches }: { patches: Patch[] }) {
             <header className="border-border-default bg-surface flex flex-wrap items-center gap-2 border-b px-4 py-2">
               <code className="font-mono text-xs font-medium">{patch.file_path}</code>
               <span className="text-muted text-xs">
-                {patch.addresses_findings} bulgu hedeflendi
+                {patch.addresses_findings}{' '}
+                {patch.addresses_findings === 1 ? 'finding targeted' : 'findings targeted'}
               </span>
               <span
                 className={cn(
@@ -592,7 +593,7 @@ function ChecksTab({ patches }: { patches: Patch[] }) {
                 ) : (
                   <AlertTriangle aria-hidden className="size-3.5" />
                 )}
-                {patch.validated ? 'Doğrulandı' : 'Doğrulanamadı'}
+                {patch.validated ? 'Validated' : 'Not validated'}
               </span>
             </header>
 

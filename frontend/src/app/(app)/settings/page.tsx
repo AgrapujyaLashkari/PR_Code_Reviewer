@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 
-import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui/primitives';
+import { Alert, Button, Card, Select, Spinner } from '@/components/ui/primitives';
 import { ApiError, api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { SEVERITY_LABEL, SEVERITY_ORDER } from '@/lib/display';
@@ -13,7 +14,6 @@ export default function SettingsPage() {
   const [capabilities, setCapabilities] = useState<Capabilities | undefined>(undefined);
   const [model, setModel] = useState(user?.preferences.llm_model ?? '');
   const [minSeverity, setMinSeverity] = useState(user?.preferences.min_severity ?? 'low');
-  const [githubToken, setGithubToken] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -35,26 +35,11 @@ export default function SettingsPage() {
       await api.updatePreferences({
         llm_model: model,
         min_severity: minSeverity,
-        // Only send the token when the user typed one; an empty field means
-        // "leave it alone", not "clear it".
-        ...(githubToken !== '' ? { github_token: githubToken } : {}),
       });
       await refreshUser();
-      setGithubToken('');
-      setMessage('Ayarlar kaydedildi.');
+      setMessage('Settings saved.');
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : 'Kaydedilemedi.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleClearToken() {
-    setSaving(true);
-    try {
-      await api.updatePreferences({ github_token: '' });
-      await refreshUser();
-      setMessage('GitHub token silindi.');
+      setError(caught instanceof ApiError ? caught.message : 'Could not save.');
     } finally {
       setSaving(false);
     }
@@ -62,7 +47,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-title">Ayarlar</h1>
+      <h1 className="text-title">Settings</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         {message !== undefined && <Alert tone="success">{message}</Alert>}
@@ -73,7 +58,7 @@ export default function SettingsPage() {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="model" className="text-sm font-medium">
-              İnceleme modeli
+              Review model
             </label>
             <Select
               id="model"
@@ -81,7 +66,7 @@ export default function SettingsPage() {
               onChange={(event) => setModel(event.target.value)}
             >
               <option value="">
-                Sunucu varsayılanı
+                Server default
                 {capabilities !== undefined && ` (${capabilities.default_model})`}
               </option>
               {capabilities?.available_models.map((name) => (
@@ -91,15 +76,15 @@ export default function SettingsPage() {
               ))}
             </Select>
             <p className="text-muted text-xs">
-              {capabilities?.ollama_reachable === false
-                ? 'Ollama’ya ulaşılamıyor; model listesi boş.'
-                : 'Yerel Ollama üzerinde kurulu modeller listelenir.'}
+              {capabilities?.llm_reachable === false
+                ? 'GEMINI_API_KEY is missing or Gemini is unreachable.'
+                : 'Reviews run on the Gemini API.'}
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="severity" className="text-sm font-medium">
-              Gösterilecek en düşük önem derecesi
+              Minimum severity to show
             </label>
             <Select
               id="severity"
@@ -117,36 +102,28 @@ export default function SettingsPage() {
 
         <Card className="flex flex-col gap-3 p-4">
           <h2 className="text-eyebrow">GitHub</h2>
-          <Field
-            label="Kişisel erişim token'ı"
-            name="github_token"
-            type="password"
-            autoComplete="off"
-            value={githubToken}
-            onChange={(event) => setGithubToken(event.target.value)}
-            placeholder={user?.has_github_token === true ? '•••••• (kayıtlı)' : 'ghp_…'}
-            hint="Özel repoların pull request'lerini incelemek için gerekir. Sunucuda Fernet ile şifrelenmiş saklanır, hiçbir yerde geri gösterilmez."
-          />
-          {user?.has_github_token === true && (
-            <div>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={saving}
-                onClick={() => void handleClearToken()}
-              >
-                Kayıtlı token’ı sil
-              </Button>
-            </div>
+          {user?.github_login !== undefined && user.github_login !== '' ? (
+            <p className="text-sm">
+              Signed in as <span className="font-mono">@{user.github_login}</span>
+              {user.github_connected ? ' · GitHub App installed' : ' · App not installed yet'}
+            </p>
+          ) : (
+            <p className="text-muted text-sm">
+              Sign in with GitHub, then install the app on the repositories to review.
+            </p>
           )}
+          <Link href="/repos">
+            <Button type="button" size="sm" variant="primary">
+              Manage repositories
+            </Button>
+          </Link>
         </Card>
 
         {capabilities !== undefined && (
           <Card className="p-4">
-            <h2 className="text-eyebrow">Etkin statik analiz araçları</h2>
+            <h2 className="text-eyebrow">Active static analysis tools</h2>
             <p className="text-muted mt-2 text-xs">
-              Ajan bulguları yalnızca bu araçlarla çapraz doğrulanabilir.
+              Agent findings can only be cross-checked with these tools.
             </p>
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {capabilities.static_analysers.map((tool) => (
@@ -164,7 +141,7 @@ export default function SettingsPage() {
         <div>
           <Button type="submit" variant="primary" disabled={saving}>
             {saving && <Spinner />}
-            Kaydet
+            Save
           </Button>
         </div>
       </form>

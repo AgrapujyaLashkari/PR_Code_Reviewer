@@ -5,6 +5,7 @@ model here is all that is needed for its indexes to be created at startup.
 """
 
 from app.db.models.finding import FindingDoc
+from app.db.models.github import ConnectedRepo, GithubInstallation
 from app.db.models.patch import Patch
 from app.db.models.review import (
     Review,
@@ -16,11 +17,21 @@ from app.db.models.review import (
 )
 from app.db.models.user import User, UserPreferences
 
-DOCUMENT_MODELS = (User, Review, ReviewFile, FindingDoc, Patch)
+DOCUMENT_MODELS = (
+    User,
+    Review,
+    ReviewFile,
+    FindingDoc,
+    Patch,
+    GithubInstallation,
+    ConnectedRepo,
+)
 
 __all__ = [
     "DOCUMENT_MODELS",
+    "ConnectedRepo",
     "FindingDoc",
+    "GithubInstallation",
     "Patch",
     "Review",
     "ReviewFile",

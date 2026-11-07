@@ -5,17 +5,17 @@ import { formatDuration, formatRelativeTime } from '@/lib/utils';
 
 describe('riskLabel', () => {
   it('escalates the label as the score rises', () => {
-    expect(riskLabel(0).label).toBe('Güvenlik bulgusu yok');
-    expect(riskLabel(5).label).toBe('Düşük risk');
-    expect(riskLabel(15).label).toBe('Orta risk');
-    expect(riskLabel(40).label).toBe('Yüksek risk');
-    expect(riskLabel(100).label).toBe('Kritik risk');
+    expect(riskLabel(0).label).toBe('No security findings');
+    expect(riskLabel(5).label).toBe('Low risk');
+    expect(riskLabel(15).label).toBe('Medium risk');
+    expect(riskLabel(40).label).toBe('High risk');
+    expect(riskLabel(100).label).toBe('Critical risk');
   });
 
   it('treats the boundary score as the higher band', () => {
-    expect(riskLabel(10).label).toBe('Orta risk');
-    expect(riskLabel(30).label).toBe('Yüksek risk');
-    expect(riskLabel(60).label).toBe('Kritik risk');
+    expect(riskLabel(10).label).toBe('Medium risk');
+    expect(riskLabel(30).label).toBe('High risk');
+    expect(riskLabel(60).label).toBe('Critical risk');
   });
 });
 
@@ -36,20 +36,20 @@ describe('formatDuration', () => {
   it('picks a unit that suits the magnitude', () => {
     expect(formatDuration(undefined)).toBe('—');
     expect(formatDuration(450)).toBe('450 ms');
-    expect(formatDuration(2500)).toBe('2.5 sn');
-    expect(formatDuration(125_000)).toBe('2 dk 5 sn');
+    expect(formatDuration(2500)).toBe('2.5s');
+    expect(formatDuration(125_000)).toBe('2m 5s');
   });
 });
 
 describe('formatRelativeTime', () => {
-  it('describes recent timestamps in Turkish', () => {
+  it('describes recent timestamps in English', () => {
     const now = new Date();
-    expect(formatRelativeTime(now.toISOString())).toBe('az önce');
+    expect(formatRelativeTime(now.toISOString())).toBe('just now');
 
     const earlier = new Date(now.getTime() - 30 * 60_000);
-    expect(formatRelativeTime(earlier.toISOString())).toBe('30 dakika önce');
+    expect(formatRelativeTime(earlier.toISOString())).toBe('30 minutes ago');
 
     const yesterday = new Date(now.getTime() - 26 * 3_600_000);
-    expect(formatRelativeTime(yesterday.toISOString())).toBe('1 gün önce');
+    expect(formatRelativeTime(yesterday.toISOString())).toBe('1 day ago');
   });
 });

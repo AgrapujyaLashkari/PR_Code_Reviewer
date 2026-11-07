@@ -11,8 +11,9 @@ import { useAuth } from '@/lib/auth-context';
 import { cn } from '@/lib/utils';
 
 const NAV = [
-  { href: '/dashboard', label: 'İncelemeler' },
-  { href: '/settings', label: 'Ayarlar' },
+  { href: '/dashboard', label: 'Reviews' },
+  { href: '/repos', label: 'Repositories' },
+  { href: '/settings', label: 'Settings' },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -28,7 +29,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <main className="text-muted flex flex-1 items-center justify-center gap-2 text-sm">
         <Spinner />
-        Oturum kontrol ediliyor…
+        Checking session…
       </main>
     );
   }
@@ -50,7 +51,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav
-            aria-label="Ana gezinme"
+            aria-label="Main navigation"
             className="flex h-full shrink-0 items-center gap-1"
           >
             {NAV.map((item) => (
@@ -72,16 +73,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             <Link href="/reviews/new">
-              <Button variant="primary" size="sm" aria-label="Yeni inceleme">
+              <Button variant="primary" size="sm" aria-label="New review">
                 <Plus aria-hidden className="size-3.5" />
-                <span className="hidden whitespace-nowrap sm:inline">Yeni inceleme</span>
+                <span className="hidden whitespace-nowrap sm:inline">New review</span>
               </Button>
             </Link>
             <span className="text-muted hidden font-mono text-xs sm:inline">
               {user.email}
             </span>
             <Button size="sm" variant="ghost" onClick={() => void logout()}>
-              Çıkış
+              Sign out
             </Button>
           </div>
         </div>

@@ -123,7 +123,7 @@ async def from_pull_request(
 
 
 def describe_upload(files: list[SourceFile]) -> str:
-    """Short label for the review list, e.g. 'app.py +3 dosya'."""
+    """Short label for the review list, e.g. 'app.py +3 files'."""
     if len(files) == 1:
         return files[0].path
-    return f"{files[0].path} +{len(files) - 1} dosya"
+    return f"{files[0].path} +{len(files) - 1} files"

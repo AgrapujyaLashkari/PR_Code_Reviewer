@@ -9,5 +9,5 @@ class RefactorResult(BaseModel):
     )
     notes: str = Field(
         default="",
-        description="Short Turkish summary of what was changed and what was left",
+        description="Short English summary of what was changed and what was left",
     )

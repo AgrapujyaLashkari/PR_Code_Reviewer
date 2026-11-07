@@ -23,8 +23,8 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Code Review Agent',
   description:
-    'Çok ajanlı yapay zeka destekli kod inceleme ve güvenlik analizi. ' +
-    'Her bulgu statik analizle çapraz doğrulanır.',
+    'Multi-agent AI code review and security analysis. ' +
+    'Every finding is cross-checked with static analysis.',
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="tr"
+      lang="en"
       className={`${plexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="bg-background flex min-h-full flex-col">
@@ -40,7 +40,7 @@ export default function RootLayout({
           href="#main"
           className="focus:bg-accent focus:text-accent-contrast sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:px-3 focus:py-2 focus:font-medium"
         >
-          İçeriğe geç
+          Skip to content
         </a>
         <AuthProvider>{children}</AuthProvider>
       </body>

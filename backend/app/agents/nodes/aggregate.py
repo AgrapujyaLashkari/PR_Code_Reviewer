@@ -48,7 +48,7 @@ async def aggregate(state: ReviewState) -> dict:
         review_id,
         EventType.NODE_STARTED,
         stage=STAGE,
-        message=f"{len(static)} statik + {len(agent)} ajan bulgusu birleştiriliyor",
+        message=f"Merging {len(static)} static + {len(agent)} agent findings",
     )
 
     merged = _merge([*static, *agent])
@@ -66,7 +66,7 @@ async def aggregate(state: ReviewState) -> dict:
         review_id,
         EventType.NODE_FINISHED,
         stage=STAGE,
-        message=f"{len(merged)} benzersiz bulgu, {corroborated} çapraz doğrulandı",
+        message=f"{len(merged)} unique findings, {corroborated} cross-checked",
         unique=len(merged),
         corroborated=corroborated,
     )

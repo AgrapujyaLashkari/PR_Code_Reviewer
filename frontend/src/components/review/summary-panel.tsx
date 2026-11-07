@@ -29,7 +29,7 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
 
   return (
     <Card className="p-4">
-      <h2 className="text-eyebrow">İnceleme özeti</h2>
+      <h2 className="text-eyebrow">Review summary</h2>
 
       <div className="mt-3 flex items-center gap-3">
         <RiskDial score={settled ? review.risk_score : undefined} color={risk.color} />
@@ -47,8 +47,8 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
               <p className="text-muted text-2xl font-semibold tabular-nums">—</p>
               <p className="text-muted text-xs">
                 {review.status === 'failed'
-                  ? 'İnceleme tamamlanamadı'
-                  : 'İnceleme sürüyor, skor henüz kesin değil'}
+                  ? 'The review did not finish'
+                  : 'Review in progress; score is not final yet'}
               </p>
             </>
           )}
@@ -99,29 +99,29 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
         <>
           <hr className="border-border-muted my-4" />
 
-          <h3 className="text-eyebrow">Kanıt kaynağı</h3>
+          <h3 className="text-eyebrow">Evidence source</h3>
           <dl className="mt-2 space-y-1.5 text-xs">
             <Row
-              label="Ajan + statik doğrulama"
+              label="Agent + static confirmation"
               value={corroborated}
-              hint="Hem dil modeli hem bağımsız bir araç aynı kusuru buldu."
+              hint="Both the language model and an independent tool found the same defect."
               emphasis
             />
             <Row
-              label="Yalnızca statik analiz"
+              label="Static analysis only"
               value={staticOnly}
-              hint="Deterministik bir kural eşleşti."
+              hint="A deterministic rule matched."
             />
             <Row
-              label="Yalnızca ajan"
+              label="Agent only"
               value={modelOnly}
-              hint="Statik araçların göremediği bulgular; daha temkinli okunmalı."
+              hint="Findings the static tools could not see; treat these more cautiously."
             />
             {stats.suppressed_low_confidence > 0 && (
               <Row
-                label="Elenen düşük güvenli"
+                label="Dropped low-confidence"
                 value={stats.suppressed_low_confidence}
-                hint="Model güveni eşiğin altındaydı ve hiçbir araç doğrulamadı."
+                hint="Model confidence was below the threshold and no tool confirmed it."
               />
             )}
           </dl>
@@ -131,7 +131,7 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
       {Object.keys(stats.by_layer).length > 0 && (
         <>
           <hr className="border-border-muted my-4" />
-          <h3 className="text-eyebrow">Katman dağılımı</h3>
+          <h3 className="text-eyebrow">Layer distribution</h3>
           <dl className="mt-2 space-y-1.5 text-xs">
             {Object.entries(stats.by_layer)
               .sort((a, b) => b[1] - a[1])
@@ -153,13 +153,13 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
           <dd className="text-foreground truncate font-mono">{review.llm_model}</dd>
         </div>
         <div className="flex justify-between gap-2">
-          <dt>Dosya</dt>
+          <dt>Files</dt>
           <dd className="text-foreground tabular-nums">
             {stats.files_analysed || review.files.length}
           </dd>
         </div>
         <div className="flex justify-between gap-2">
-          <dt>Süre</dt>
+          <dt>Duration</dt>
           <dd className="text-foreground tabular-nums">
             {formatDuration(review.duration_ms)}
           </dd>

@@ -51,7 +51,7 @@ async def layer_agent(task: AgentTask) -> dict:
         review_id,
         EventType.NODE_STARTED,
         stage=stage,
-        message=f"{len(task['files'])} dosya inceleniyor",
+        message=f"Reviewing {len(task['files'])} files",
         layer=layer.value,
         lens=lens.value,
     )
@@ -102,7 +102,7 @@ async def layer_agent(task: AgentTask) -> dict:
         review_id,
         EventType.NODE_FINISHED,
         stage=stage,
-        message=f"{len(findings)} bulgu",
+        message=f"{len(findings)} findings",
         finding_count=len(findings),
         rejected_count=rejected,
     )
@@ -144,6 +144,7 @@ async def _review_chunk(
             if chunk.line_start <= line <= chunk.line_end
         ],
         scope_lines=_format_scope(changed, chunk),
+        repo_guidelines=task.get("repo_guidelines", ""),
     )
 
     response = await structured(

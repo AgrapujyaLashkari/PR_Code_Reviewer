@@ -53,7 +53,7 @@ async def test_a_real_fix_is_validated() -> None:
     validated, report = await _validate(source(VULNERABLE), FIXED, [finding()])
 
     assert validated is True, report
-    assert "giderildi" in report
+    assert "were removed" in report
 
 
 async def test_a_fix_that_leaves_the_defect_is_rejected() -> None:
@@ -76,7 +76,7 @@ async def test_a_fix_that_introduces_a_new_defect_is_rejected() -> None:
     validated, report = await _validate(source(VULNERABLE), worse, [finding()])
 
     assert validated is False
-    assert "yeni güvenlik bulgusu" in report
+    assert "new security finding" in report
 
 
 async def test_a_fix_that_breaks_the_syntax_is_rejected() -> None:
@@ -85,7 +85,7 @@ async def test_a_fix_that_breaks_the_syntax_is_rejected() -> None:
     validated, report = await _validate(source(VULNERABLE), broken, [finding()])
 
     assert validated is False
-    assert "ayrıştırılamıyor" in report.lower()
+    assert "cannot be parsed" in report.lower()
 
 
 async def test_replacing_a_shell_call_with_an_argument_list_is_not_a_regression() -> (
@@ -117,7 +117,7 @@ async def test_findings_only_an_agent_raised_are_reported_as_unverifiable() -> N
     )
 
     assert validated is True, report
-    assert "doğrulanamadı" in report
+    assert "could not be confirmed" in report
 
 
 def test_markdown_fences_are_stripped_from_model_output() -> None:

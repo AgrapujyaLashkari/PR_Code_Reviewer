@@ -37,9 +37,9 @@ class Settings(BaseSettings):
     #: token storage is refused rather than stored in the clear.
     fernet_key: str = ""
 
-    # --- llm (local ollama) ---
-    ollama_base_url: str = "http://localhost:11434"
-    llm_model: str = "qwen3.6:35b-a3b"
+    # --- llm (Gemini) ---
+    gemini_api_key: str = ""
+    llm_model: str = "gemini-3.8-flash"
     llm_temperature: float = 0.1
     llm_seed: int = 42
     llm_num_ctx: int = 16384
@@ -58,9 +58,16 @@ class Settings(BaseSettings):
     #: Agents run concurrently; cap it so a local LLM is not thrashed.
     max_concurrent_agents: int = 3
 
-    # --- integrations ---
-    github_token: str = ""
+    # --- GitHub App (Vercel-style install, no personal access tokens) ---
     github_api_url: str = "https://api.github.com"
+    github_app_id: str = ""
+    github_app_client_id: str = ""
+    github_app_client_secret: str = ""
+    github_app_private_key: str = ""
+    github_app_webhook_secret: str = ""
+    github_app_slug: str = ""
+    github_oauth_redirect_url: str = "http://localhost:8001/api/v1/auth/github/callback"
+    frontend_url: str = "http://localhost:3000"
     ci_shared_secret: str = ""
 
     # --- app ---
@@ -84,6 +91,13 @@ class Settings(BaseSettings):
     def _split_origins(cls, value: object) -> object:
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
+        return value
+
+    @field_validator("github_app_private_key", mode="before")
+    @classmethod
+    def _normalise_pem(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.replace("\\n", "\n").strip()
         return value
 
 

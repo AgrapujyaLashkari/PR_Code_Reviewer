@@ -27,7 +27,7 @@ async def static_scan(state: ReviewState) -> dict:
             review_id,
             EventType.NODE_FINISHED,
             stage=STAGE,
-            message="statik analiz devre dışı (benchmark)",
+            message="static analysis disabled (benchmark)",
             tools_run=[],
             tools_skipped=[],
             finding_count=0,
@@ -42,7 +42,7 @@ async def static_scan(state: ReviewState) -> dict:
         review_id,
         EventType.NODE_STARTED,
         stage=STAGE,
-        message=f"{len(files)} dosya statik analizden geçiriliyor",
+        message=f"Running static analysis on {len(files)} files",
     )
 
     result = await run_all(files)
@@ -54,7 +54,7 @@ async def static_scan(state: ReviewState) -> dict:
         review_id,
         EventType.NODE_FINISHED,
         stage=STAGE,
-        message=f"{len(result.findings)} statik bulgu",
+        message=f"{len(result.findings)} static findings",
         tools_run=result.tools_run,
         tools_skipped=result.tools_skipped,
         finding_count=len(result.findings),

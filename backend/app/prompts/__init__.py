@@ -5,8 +5,8 @@ They are the part of the system most likely to be tuned, and keeping them in
 files means a prompt change is reviewable as a prompt change.
 
 Templates are written in English because instruction-following is more
-reliable that way, but every user-visible field they ask for (title,
-explanation) is required to be Turkish.
+reliable that way, and every user-visible field they ask for (title,
+explanation) is required to be English.
 """
 
 from functools import lru_cache

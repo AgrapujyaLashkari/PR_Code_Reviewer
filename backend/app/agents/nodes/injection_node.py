@@ -14,7 +14,7 @@ async def injection_guard(state: ReviewState) -> dict:
         review_id,
         EventType.NODE_STARTED,
         stage=STAGE,
-        message="Prompt injection taraması",
+        message="Prompt-injection scan",
     )
 
     flags, findings = scan(state["files"])
@@ -24,9 +24,9 @@ async def injection_guard(state: ReviewState) -> dict:
         EventType.NODE_FINISHED,
         stage=STAGE,
         message=(
-            f"{len(flags)} dosyada şüpheli talimat metni"
+            f"Suspicious instruction text in {len(flags)} files"
             if flags
-            else "Şüpheli talimat metni yok"
+            else "No suspicious instruction text"
         ),
         flagged_files=sorted(flags),
     )

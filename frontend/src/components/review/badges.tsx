@@ -82,7 +82,7 @@ export function CorroborationBadge({
         className="bg-verified-soft text-verified ring-verified-ring inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset"
       >
         <ShieldCheck aria-hidden className="size-3.5" />
-        {corroboratedBy.join(', ')} doğruladı
+        Confirmed by {corroboratedBy.join(', ')}
       </span>
     );
   }
@@ -93,7 +93,7 @@ export function CorroborationBadge({
         title={ORIGIN_HINT.llm}
         className="text-muted border-border-default inline-flex items-center rounded-full border border-dashed px-2 py-0.5 text-xs font-medium"
       >
-        Statik doğrulama yok
+        No static confirmation
       </span>
     );
   }

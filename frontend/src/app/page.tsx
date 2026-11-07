@@ -21,7 +21,7 @@ export default function Home() {
       className="text-muted flex flex-1 items-center justify-center gap-2 text-sm"
     >
       <Spinner />
-      Yükleniyor…
+      Loading…
     </main>
   );
 }

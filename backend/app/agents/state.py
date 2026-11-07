@@ -31,6 +31,8 @@ class ReviewState(TypedDict, total=False):
 
     review_id: str
     llm_model: str
+    #: README / CONTRIBUTING / per-repo rules, injected into every agent prompt.
+    repo_guidelines: str
 
     #: Benchmark-only. When true, static_scan yields no findings so the LLM
     #: reviews without static evidence and aggregate has nothing to corroborate
@@ -67,6 +69,7 @@ class AgentTask(TypedDict):
     files: list[SourceFile]
     static_findings: list[Finding]
     injection_flags: dict[str, list[int]]
+    repo_guidelines: str
 
 
 class RefactorTask(TypedDict):

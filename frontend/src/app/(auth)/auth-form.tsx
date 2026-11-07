@@ -1,35 +1,35 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { z } from 'zod';
 
 import { Logo } from '@/components/ui/logo';
 import { Alert, Button, Card, Field, Spinner } from '@/components/ui/primitives';
-import { ApiError } from '@/lib/api';
+import { ApiError, api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
 const schema = z.object({
-  email: z.string().email('Geçerli bir e-posta adresi girin'),
-  password: z.string().min(8, 'Parola en az 8 karakter olmalı'),
+  email: z.string().email('Enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 type Mode = 'login' | 'register';
 
 const COPY = {
   login: {
-    title: 'Giriş yap',
-    submit: 'Giriş yap',
-    switchText: 'Hesabın yok mu?',
-    switchLabel: 'Kayıt ol',
+    title: 'Sign in',
+    submit: 'Sign in',
+    switchText: "Don't have an account?",
+    switchLabel: 'Register',
     switchHref: '/register',
   },
   register: {
-    title: 'Kayıt ol',
-    submit: 'Hesap oluştur',
-    switchText: 'Zaten hesabın var mı?',
-    switchLabel: 'Giriş yap',
+    title: 'Register',
+    submit: 'Create account',
+    switchText: 'Already have an account?',
+    switchLabel: 'Sign in',
     switchHref: '/login',
   },
 } as const;
@@ -42,7 +42,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | undefined>(undefined);
+  const searchParams = useSearchParams();
+  const [formError, setFormError] = useState<string | undefined>(
+    searchParams.get('error') === 'github'
+      ? 'GitHub sign-in failed. Try again, or use email.'
+      : undefined,
+  );
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
@@ -72,7 +77,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       setFormError(
         error instanceof ApiError
           ? error.message
-          : 'Sunucuya ulaşılamadı. Backend çalışıyor mu?',
+          : 'Could not reach the server. Is the backend running?',
       );
       setSubmitting(false);
     }
@@ -87,18 +92,26 @@ export function AuthForm({ mode }: { mode: Mode }) {
             Code Review Agent
           </h1>
           <p className="text-muted mt-1 text-sm">
-            Çok ajanlı kod inceleme ve güvenlik analizi
+            Multi-agent code review and security analysis
           </p>
         </div>
 
         <Card className="p-6">
           <h2 className="text-section mb-4">{copy.title}</h2>
 
+          <a
+            href={api.githubLoginUrl()}
+            className="border-border-default hover:border-accent-ring mb-4 flex h-9 items-center justify-center rounded-md border bg-surface-raised text-sm font-medium transition-colors"
+          >
+            Continue with GitHub
+          </a>
+          <p className="text-muted mb-4 text-center text-xs">or</p>
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
             {formError !== undefined && <Alert>{formError}</Alert>}
 
             <Field
-              label="E-posta"
+              label="Email"
               name="email"
               type="email"
               autoComplete="email"
@@ -108,7 +121,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               error={fieldErrors.email}
             />
             <Field
-              label="Parola"
+              label="Password"
               name="password"
               type="password"
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -116,7 +129,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               error={fieldErrors.password}
-              hint={mode === 'register' ? 'En az 8 karakter' : undefined}
+              hint={mode === 'register' ? 'At least 8 characters' : undefined}
             />
 
             <Button type="submit" variant="primary" disabled={submitting}>

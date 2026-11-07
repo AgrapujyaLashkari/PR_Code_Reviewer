@@ -13,7 +13,7 @@ async def partition_files(state: ReviewState) -> dict:
     review_id = state["review_id"]
     files = state["files"]
 
-    await emit(review_id, EventType.NODE_STARTED, stage=STAGE, message="Katman ayrımı")
+    await emit(review_id, EventType.NODE_STARTED, stage=STAGE, message="Layer partition")
 
     grouped = partition(files)
     distribution = Counter(

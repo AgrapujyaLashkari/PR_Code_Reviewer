@@ -87,14 +87,13 @@ def scan(files: list[SourceFile]) -> tuple[dict[str, list[int]], list[Finding]]:
                 line_end=lines[-1],
                 severity=Severity.HIGH,
                 category=Category.CODE_INJECTION,
-                title="Kodda yapay zeka incelemesini hedefleyen talimat metni",
+                title="Instruction text aimed at an AI code reviewer",
                 explanation=(
-                    f"{len(lines)} satırda ({', '.join(map(str, lines[:10]))}) "
-                    "bir dil modeline hitap eden talimat kalıbı bulundu. Bu, kod "
-                    "incelemesini yanıltmaya yönelik bir prompt injection "
-                    "denemesi olabilir; ilgili satırlar ajana veri olarak "
-                    "verildi ve talimat olarak işlenmedi. Metnin neden burada "
-                    "olduğu doğrulanmalı."
+                    f"Lines {', '.join(map(str, lines[:10]))} "
+                    f"({len(lines)} total) match a pattern that addresses a "
+                    "language model. This may be a prompt-injection attempt to "
+                    "mislead the review; those lines were passed to the agent as "
+                    "data, not as instructions. Confirm why this text is here."
                 ),
                 owasp="A03:2021-Injection",
                 cwe="CWE-1427",

@@ -197,10 +197,10 @@ def analyse_file(file: SourceFile) -> list[Finding]:
                         start,
                         end,
                         "long-function",
-                        f"`{name}` fonksiyonu {length} satır",
-                        f"Fonksiyon {length} satır uzunluğunda (eşik: "
-                        f"{MAX_FUNCTION_LINES}). Tek sorumluluğa indirgenecek "
-                        "şekilde bölünmesi test edilebilirliği artırır.",
+                        f"`{name}` is {length} lines long",
+                        f"The function is {length} lines (threshold: "
+                        f"{MAX_FUNCTION_LINES}). Splitting it down to a single "
+                        "responsibility makes it easier to test.",
                         Severity.LOW,
                     )
                 )
@@ -213,10 +213,10 @@ def analyse_file(file: SourceFile) -> list[Finding]:
                         start,
                         end,
                         "deep-nesting",
-                        f"`{name}` içinde {depth} seviye iç içe blok",
-                        f"İç içe geçme derinliği {depth} (eşik: "
-                        f"{MAX_NESTING_DEPTH}). Erken dönüş (guard clause) "
-                        "kullanmak akışı düzleştirir.",
+                        f"`{name}` nests {depth} levels deep",
+                        f"Nesting depth is {depth} (threshold: "
+                        f"{MAX_NESTING_DEPTH}). Early returns (guard clauses) "
+                        "flatten the control flow.",
                         Severity.LOW,
                     )
                 )
@@ -229,9 +229,9 @@ def analyse_file(file: SourceFile) -> list[Finding]:
                         start,
                         start,
                         "long-parameter-list",
-                        f"`{name}` {params} parametre alıyor",
-                        f"Parametre sayısı {params} (eşik: {MAX_PARAMETERS}). "
-                        "İlgili parametreleri bir veri sınıfında toplamayı düşünün.",
+                        f"`{name}` takes {params} parameters",
+                        f"Parameter count is {params} (threshold: {MAX_PARAMETERS}). "
+                        "Consider grouping related parameters into a data class.",
                         Severity.INFO,
                     )
                 )

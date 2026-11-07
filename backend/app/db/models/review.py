@@ -22,6 +22,7 @@ class SourceKind(StrEnum):
     PASTE = "paste"
     PULL_REQUEST = "pull_request"
     CI = "ci"
+    GITHUB_APP = "github_app"
 
 
 class ReviewSource(BaseModel):
@@ -31,6 +32,7 @@ class ReviewSource(BaseModel):
     repo: str | None = None
     pr_number: int | None = None
     commit_sha: str | None = None
+    installation_id: int | None = None
 
 
 class ReviewStats(BaseModel):
@@ -51,6 +53,8 @@ class Review(Document):
     llm_model: str
     risk_score: int = 0
     stats: ReviewStats = Field(default_factory=ReviewStats)
+    #: README / CONTRIBUTING / user rules passed to every agent.
+    repo_guidelines: str = ""
     #: Populated when status is FAILED.
     error: str | None = None
     duration_ms: int | None = None

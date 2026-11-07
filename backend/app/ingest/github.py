@@ -53,14 +53,23 @@ def parse_pr_url(url: str) -> PullRequestRef:
     )
 
 
+#: Small set of repo-level files agents see as project context.
+REPO_CONTEXT_PATHS = (
+    "README.md",
+    "CONTRIBUTING.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".github/CODEOWNERS",
+)
+
+
 def _headers(token: str | None) -> dict[str, str]:
     headers = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }
-    effective = token or settings.github_token
-    if effective:
-        headers["Authorization"] = f"Bearer {effective}"
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     return headers
 
 
@@ -143,8 +152,7 @@ async def _get_json(client: httpx.AsyncClient, url: str, **kwargs):
 
     if response.status_code == 404:
         raise GitHubError(
-            "Pull request not found. A private repository needs a GitHub token "
-            "in your settings."
+            "Pull request not found. Connect this repository with the GitHub App."
         )
     if response.status_code in (401, 403):
         raise GitHubError(
@@ -153,3 +161,25 @@ async def _get_json(client: httpx.AsyncClient, url: str, **kwargs):
     if not response.is_success:
         raise GitHubError(f"GitHub returned {response.status_code}")
     return response.json()
+
+
+async def fetch_repo_context(
+    owner: str, repo: str, *, token: str, ref: str | None = None
+) -> str:
+    """README / CONTRIBUTING / similar files, truncated for the prompt."""
+    from app.github_app.client import fetch_file_text
+
+    chunks: list[str] = []
+    remaining = 24_000
+    for path in REPO_CONTEXT_PATHS:
+        if remaining <= 0:
+            break
+        text = await fetch_file_text(owner, repo, path, token=token, ref=ref)
+        if not text or not text.strip():
+            continue
+        body = text.strip()
+        if len(body) > remaining:
+            body = body[:remaining] + "\n…(truncated)"
+        chunks.append(f"### {path}\n{body}")
+        remaining -= len(body)
+    return "\n\n".join(chunks)

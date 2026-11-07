@@ -230,10 +230,10 @@ def scan_file(file: SourceFile) -> list[Finding]:
                     rule.severity,
                     title=f"Hardcoded {rule.name}",
                     explanation=(
-                        f"Bu satırda {rule.name} formatına uyan bir kimlik bilgisi "
-                        f"gömülü görünüyor ({_redact(value)}). Sürüm kontrolüne giren "
-                        "her secret sızmış kabul edilmeli: anahtarı iptal edin ve "
-                        "değeri ortam değişkeninden okuyun."
+                        f"This line looks like an embedded {rule.name} "
+                        f"({_redact(value)}). Any secret that lands in version "
+                        "control should be treated as leaked: revoke the key and "
+                        "read the value from an environment variable."
                     ),
                 )
             )
@@ -267,9 +267,10 @@ def _scan_assignment(file: SourceFile, line_number: int, line: str) -> Finding |
         Severity.HIGH,
         title="Hardcoded credential in assignment",
         explanation=(
-            f"`{name}` değişkenine yüksek entropili ({shannon_entropy(value):.2f} bit/"
-            f"karakter) sabit bir değer atanmış ({_redact(value)}). Kimlik bilgisi "
-            "gibi görünüyor; ortam değişkenine taşıyın ve mevcut değeri iptal edin."
+            f"`{name}` is assigned a high-entropy "
+            f"({shannon_entropy(value):.2f} bits/character) literal "
+            f"({_redact(value)}). It looks like a credential; move it to an "
+            "environment variable and revoke the current value."
         ),
     )
 

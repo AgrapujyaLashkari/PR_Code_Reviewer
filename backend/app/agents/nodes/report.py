@@ -47,7 +47,7 @@ async def report(state: ReviewState) -> dict:
         review_id,
         EventType.NODE_FINISHED,
         stage=STAGE,
-        message=f"{len(findings)} bulgu, risk skoru {score}",
+        message=f"{len(findings)} findings, risk score {score}",
         risk_score=score,
         patch_count=len(patches),
         validated_patches=sum(1 for p in patches if p.validated),

@@ -3,10 +3,10 @@
 from typing import Annotated
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Cookie, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, HTTPException, Query, Response, status
+from fastapi.responses import RedirectResponse
 from pymongo.errors import DuplicateKeyError
 
-from app.auth.crypto import SecretStorageUnavailable, encrypt_secret
 from app.auth.deps import CurrentUser
 from app.auth.password import hash_password, verify_password
 from app.auth.tokens import (
@@ -18,6 +18,7 @@ from app.auth.tokens import (
 )
 from app.config import settings
 from app.db.models import User
+from app.db.models.github import GithubInstallation
 from app.schemas.auth import (
     LoginRequest,
     PreferencesUpdate,
@@ -40,13 +41,21 @@ _INVALID_CREDENTIALS = HTTPException(
 )
 
 
-def _to_response(user: User) -> UserResponse:
+async def _to_response(user: User) -> UserResponse:
+    has_install = False
+    if user.id is not None:
+        has_install = (
+            await GithubInstallation.find_one(GithubInstallation.user_id == user.id)
+            is not None
+        )
     return UserResponse(
         id=str(user.id),
         email=user.email,
         display_name=user.display_name,
         preferences=user.preferences,
-        has_github_token=bool(user.github_token_encrypted),
+        github_id=user.github_id,
+        github_login=user.github_login,
+        github_connected=has_install,
     )
 
 
@@ -89,8 +98,9 @@ async def register(body: RegisterRequest, response: Response) -> TokenResponse:
 @router.post("/login")
 async def login(body: LoginRequest, response: Response) -> TokenResponse:
     user = await User.find_one(User.email == body.email.lower())
-    valid = verify_password(body.password, user.password_hash if user else _DUMMY_HASH)
-    if user is None or not valid:
+    hashed = user.password_hash if user and user.password_hash else _DUMMY_HASH
+    valid = verify_password(body.password, hashed)
+    if user is None or user.password_hash is None or not valid:
         raise _INVALID_CREDENTIALS
     return _issue(response, str(user.id))
 
@@ -121,7 +131,7 @@ async def logout(response: Response) -> dict[str, str]:
 
 @router.get("/me")
 async def me(user: CurrentUser) -> UserResponse:
-    return _to_response(user)
+    return await _to_response(user)
 
 
 @router.patch("/me")
@@ -130,19 +140,87 @@ async def update_me(user: CurrentUser, body: PreferencesUpdate) -> UserResponse:
         user.preferences.llm_model = body.llm_model or None
     if body.min_severity is not None:
         user.preferences.min_severity = body.min_severity
-    if body.github_token is not None:
-        if body.github_token == "":
-            user.github_token_encrypted = None
-        else:
-            try:
-                user.github_token_encrypted = encrypt_secret(body.github_token)
-            except SecretStorageUnavailable as exc:
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail=(
-                        "Server has no FERNET_KEY configured; "
-                        "refusing to store the token unencrypted"
-                    ),
-                ) from exc
     await user.save()
-    return _to_response(user)
+    return await _to_response(user)
+
+
+@router.get("/github")
+async def github_login_start() -> RedirectResponse:
+    """Begin GitHub App OAuth (Vercel-style sign-in)."""
+    from app.github_app import oauth
+
+    if not oauth.is_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="GitHub App is not configured on this server",
+        )
+    state = oauth.new_state()
+    redirect = RedirectResponse(oauth.authorize_url(state), status_code=302)
+    redirect.set_cookie(
+        oauth.STATE_COOKIE,
+        state,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        max_age=oauth.STATE_COOKIE_MAX_AGE,
+        path=REFRESH_COOKIE_PATH,
+    )
+    return redirect
+
+
+@router.get("/github/callback")
+async def github_login_callback(
+    code: Annotated[str, Query()] = "",
+    state: Annotated[str, Query()] = "",
+    state_cookie: Annotated[str | None, Cookie(alias="github_oauth_state")] = None,
+) -> RedirectResponse:
+    """Finish GitHub OAuth, create or link the user, send them to the UI."""
+    from app.github_app import oauth
+    from app.github_app.service import sync_installations_for_github_user
+
+    frontend = settings.frontend_url.rstrip("/")
+    error_url = f"{frontend}/login?error=github"
+
+    if not code or not state or not state_cookie or state != state_cookie:
+        return RedirectResponse(error_url, status_code=302)
+
+    try:
+        user_token = await oauth.exchange_code(code)
+        profile = await oauth.fetch_github_user(user_token)
+    except oauth.GitHubOAuthError:
+        return RedirectResponse(error_url, status_code=302)
+
+    user = await User.find_one(User.github_id == profile["github_id"])
+    if user is None:
+        user = await User.find_one(User.email == profile["email"])
+    if user is None:
+        user = User(
+            email=str(profile["email"]),
+            password_hash=None,
+            display_name=str(profile["name"]),
+            github_id=int(profile["github_id"]),
+            github_login=str(profile["login"]),
+            github_avatar_url=str(profile["avatar_url"]),
+        )
+        try:
+            await user.insert()
+        except DuplicateKeyError:
+            return RedirectResponse(error_url, status_code=302)
+    else:
+        user.github_id = int(profile["github_id"])
+        user.github_login = str(profile["login"])
+        user.github_avatar_url = str(profile["avatar_url"])
+        if not user.display_name:
+            user.display_name = str(profile["name"])
+        await user.save()
+
+    await sync_installations_for_github_user(user)
+    has_install = (
+        await GithubInstallation.find_one(GithubInstallation.user_id == user.id)
+        is not None
+    )
+    dest = f"{frontend}/repos" if not has_install else f"{frontend}/dashboard"
+    redirect = RedirectResponse(dest, status_code=302)
+    _issue(redirect, str(user.id))
+    redirect.delete_cookie("github_oauth_state", path=REFRESH_COOKIE_PATH)
+    return redirect

@@ -1,19 +1,15 @@
-"""Local LLM access.
+"""Gemini LLM access.
 
 Every agent call goes through `structured()`, which forces the model to answer
 against a Pydantic schema. Free-text answers are never parsed: a schema
 violation is a retry, not a best-effort regex.
-
-Determinism is deliberate - a fixed seed and a near-zero temperature mean two
-reviews of the same file give the same findings, which is what makes the
-benchmark numbers meaningful.
 """
 
 import asyncio
 import logging
 
 import httpx
-from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel
 from tenacity import (
     retry,
@@ -26,62 +22,45 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+GEMINI_MODELS = [
+    "gemini-3.8-flash",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+    "gemini-2.0-flash",
+]
+
 
 class LlmUnavailable(RuntimeError):
-    """Ollama is not reachable or the requested model is not pulled."""
+    """Gemini is not configured or refused the request."""
 
 
-#: Guards a local runtime that can only serve so many generations at once.
+#: Guards a runtime that can only serve so many generations at once.
 _semaphore = asyncio.Semaphore(settings.max_concurrent_agents)
 
-#: model name -> capability set, from /api/show. Cached: it cannot change
-#: while the process runs, and the probe costs a round trip.
-_capabilities: dict[str, frozenset[str]] = {}
 
-
-async def _model_capabilities(model: str) -> frozenset[str]:
-    if model in _capabilities:
-        return _capabilities[model]
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.post(
-                f"{settings.ollama_base_url}/api/show", json={"model": model}
-            )
-            response.raise_for_status()
-            caps = frozenset(response.json().get("capabilities") or ())
-    except httpx.HTTPError as exc:
-        raise LlmUnavailable(f"Cannot query model {model}: {exc}") from exc
-    _capabilities[model] = caps
-    return caps
+def _require_key() -> str:
+    key = settings.gemini_api_key.strip()
+    if not key:
+        raise LlmUnavailable(
+            "GEMINI_API_KEY is not set. Add it to .env to run agent reviews."
+        )
+    return key
 
 
 async def list_models() -> list[str]:
-    """Model names available on the local Ollama instance."""
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(f"{settings.ollama_base_url}/api/tags")
-            response.raise_for_status()
-    except httpx.HTTPError as exc:
-        raise LlmUnavailable(f"Ollama is not reachable: {exc}") from exc
-    return sorted(model["name"] for model in response.json().get("models", []))
+    """Models this instance can call. Gemini does not need a local pull."""
+    _require_key()
+    return list(GEMINI_MODELS)
 
 
-async def _build(model: str, num_ctx: int, num_predict: int) -> ChatOllama:
-    kwargs: dict[str, object] = {
-        "model": model,
-        "base_url": settings.ollama_base_url,
-        "temperature": settings.llm_temperature,
-        "seed": settings.llm_seed,
-        "num_ctx": num_ctx,
-        "num_predict": num_predict,
-        "client_kwargs": {"timeout": settings.llm_timeout_seconds},
-    }
-    # Reasoning models burn a lot of tokens thinking before answering. We ask
-    # for the answer directly; passing the flag to a model without the
-    # capability is an error, so only set it when supported.
-    if "thinking" in await _model_capabilities(model):
-        kwargs["reasoning"] = False
-    return ChatOllama(**kwargs)
+def _build(model: str, num_predict: int) -> ChatGoogleGenerativeAI:
+    return ChatGoogleGenerativeAI(
+        model=model,
+        google_api_key=_require_key(),
+        temperature=settings.llm_temperature,
+        max_output_tokens=num_predict,
+        timeout=settings.llm_timeout_seconds,
+    )
 
 
 @retry(
@@ -91,12 +70,10 @@ async def _build(model: str, num_ctx: int, num_predict: int) -> ChatOllama:
     reraise=True,
 )
 async def _invoke[M: BaseModel](
-    chat: ChatOllama, schema: type[M], messages: list[tuple]
+    chat: ChatGoogleGenerativeAI, schema: type[M], messages: list[tuple]
 ) -> M:
     result = await chat.with_structured_output(schema).ainvoke(messages)
     if not isinstance(result, schema):
-        # A model that ignores the schema gets another attempt rather than
-        # letting a malformed object leak into the review.
         raise ValueError(f"Model returned {type(result).__name__}, expected {schema}")
     return result
 
@@ -112,18 +89,27 @@ async def structured[M: BaseModel](
 ) -> M:
     """Ask the model for one `schema` instance.
 
-    Raises `LlmUnavailable` when Ollama cannot serve the request at all; other
+    Raises `LlmUnavailable` when Gemini cannot serve the request at all; other
     failures have already been retried with backoff.
     """
+    del num_ctx  # Gemini context is model-defined; kept for call-site compatibility.
     chosen = model or settings.llm_model
-    chat = await _build(
-        chosen,
-        num_ctx or settings.llm_num_ctx,
-        num_predict or settings.llm_num_predict,
-    )
+    chat = _build(chosen, num_predict or settings.llm_num_predict)
 
     async with _semaphore:
         try:
             return await _invoke(chat, schema, [("system", system), ("human", user)])
-        except httpx.ConnectError as exc:
-            raise LlmUnavailable(f"Ollama is not reachable: {exc}") from exc
+        except LlmUnavailable:
+            raise
+        except Exception as exc:
+            message = str(exc).lower()
+            if (
+                "api key" in message
+                or "permission" in message
+                or "401" in message
+                or "404" in message
+                or "not_found" in message
+                or "no longer available" in message
+            ):
+                raise LlmUnavailable(f"Gemini rejected the request: {exc}") from exc
+            raise

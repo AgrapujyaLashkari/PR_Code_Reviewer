@@ -59,7 +59,7 @@ async def refactor_file(task: RefactorTask) -> dict:
         review_id,
         EventType.NODE_STARTED,
         stage=STAGE,
-        message=f"{file.path}: {len(findings)} bulgu düzeltiliyor",
+        message=f"{file.path}: fixing {len(findings)} findings",
         file_path=file.path,
     )
 
@@ -86,7 +86,7 @@ async def refactor_file(task: RefactorTask) -> dict:
             review_id,
             EventType.NODE_FINISHED,
             stage=STAGE,
-            message=f"{file.path}: düzeltme üretilemedi",
+            message=f"{file.path}: could not produce a fix",
             file_path=file.path,
         )
         return {"patches": []}
@@ -97,7 +97,7 @@ async def refactor_file(task: RefactorTask) -> dict:
             review_id,
             EventType.NODE_FINISHED,
             stage=STAGE,
-            message=f"{file.path}: değişiklik yok",
+            message=f"{file.path}: no changes",
             file_path=file.path,
         )
         return {"patches": []}
@@ -118,7 +118,7 @@ async def refactor_file(task: RefactorTask) -> dict:
         review_id,
         EventType.PATCH,
         stage=STAGE,
-        message=f"{file.path}: {'doğrulandı' if validated else 'doğrulanamadı'}",
+        message=f"{file.path}: {'validated' if validated else 'not validated'}",
         file_path=file.path,
         validated=validated,
         detail=report,
@@ -168,7 +168,7 @@ async def _validate(
     patched = file.model_copy(update={"content": refactored})
 
     if not parse_structure(file).parse_error and parse_structure(patched).parse_error:
-        return False, "Düzeltilmiş kod ayrıştırılamıyor: sözdizimi hatası eklenmiş."
+        return False, "Refactored code cannot be parsed: a syntax error was introduced."
 
     before, after = await run_all([file]), await run_all([patched])
     before_counts = _serious_counts(before.findings)
@@ -181,7 +181,7 @@ async def _validate(
     )
     if introduced:
         return False, (
-            "Düzeltme yeni güvenlik bulgusu ekledi: " + ", ".join(introduced[:5])
+            "The fix introduced a new security finding: " + ", ".join(introduced[:5])
         )
 
     # Only categories a deterministic tool could see before can be checked
@@ -194,20 +194,20 @@ async def _validate(
     )
     if unresolved:
         return False, (
-            "Şu kategoriler düzeltilmiş kodda hâlâ aynı sayıda tespit ediliyor: "
+            "These categories are still detected at the same count in the patched code: "
             + ", ".join(unresolved)
         )
 
     resolved = sum(before_counts.values()) - sum(after_counts.values())
     unverifiable = len(targeted) - len(checkable)
     detail = (
-        f"Ayrıştırma başarılı; {resolved} statik güvenlik bulgusu giderildi, "
-        "yeni bulgu eklenmedi."
+        f"Parse succeeded; {resolved} static security findings were removed, "
+        "and no new findings were added."
     )
     if unverifiable:
         detail += (
-            f" {unverifiable} bulgu yalnızca ajan tarafından raporlandığı için "
-            "statik araçlarla doğrulanamadı."
+            f" {unverifiable} findings were reported only by the agent, so they "
+            "could not be confirmed with static tools."
         )
     return True, detail
 

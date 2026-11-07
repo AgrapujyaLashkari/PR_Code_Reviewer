@@ -14,7 +14,6 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 
-from app.auth.crypto import decrypt_secret
 from app.auth.deps import CurrentUser, OwnedReview
 from app.config import settings
 from app.db.models import (
@@ -56,8 +55,11 @@ async def _start(
     background: BackgroundTasks,
     source: ReviewSource,
     files: list[SourceFile],
+    repo_guidelines: str = "",
 ) -> ReviewSummary:
-    review = await service.create_review(user, source, files)
+    review = await service.create_review(
+        user, source, files, repo_guidelines=repo_guidelines
+    )
     background.add_task(service.run_review, review.id)
     return _summary(review)
 
@@ -105,17 +107,33 @@ async def create_from_pull_request(
     user: CurrentUser, background: BackgroundTasks, body: PullRequestRequest
 ) -> ReviewSummary:
     """Start a review of a GitHub pull request's changed lines."""
-    token = (
-        decrypt_secret(user.github_token_encrypted)
-        if user.github_token_encrypted
-        else None
-    )
+    from app.github_app.service import token_for_user_repo
+    from app.github_app.tokens import GitHubAppApiError
+    from app.ingest.github import GitHubError, fetch_repo_context, parse_pr_url
+
+    try:
+        ref = parse_pr_url(body.url)
+    except GitHubError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+    try:
+        token = await token_for_user_repo(user.id, f"{ref.owner}/{ref.repo}")
+    except GitHubAppApiError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
     try:
         sources, source = await ingest.from_pull_request(body.url, token=token)
     except ingest.IngestError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
-    return await _start(user, background, source, sources)
+    connected = await _connected_repo(user.id, f"{ref.owner}/{ref.repo}")
+    source.installation_id = connected.installation_id if connected else None
+    extra = connected.extra_guidelines if connected else ""
+    fetched = await fetch_repo_context(
+        ref.owner, ref.repo, token=token, ref=source.commit_sha
+    )
+    guidelines = "\n\n".join(part for part in (extra, fetched) if part)
+    return await _start(user, background, source, sources, repo_guidelines=guidelines)
 
 
 @router.post("/ci", status_code=status.HTTP_202_ACCEPTED)
@@ -292,6 +310,14 @@ async def delete_review(review: OwnedReview) -> None:
     await Patch.find(Patch.review_id == review.id).delete()
     await ReviewFile.find(ReviewFile.review_id == review.id).delete()
     await review.delete()
+
+
+async def _connected_repo(user_id, full_name: str):
+    from app.db.models.github import ConnectedRepo
+
+    return await ConnectedRepo.find_one(
+        ConnectedRepo.user_id == user_id, ConnectedRepo.full_name == full_name
+    )
 
 
 def _summary(review: Review) -> ReviewSummary:

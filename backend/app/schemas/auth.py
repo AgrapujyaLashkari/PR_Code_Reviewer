@@ -27,11 +27,11 @@ class UserResponse(BaseModel):
     email: EmailStr
     display_name: str
     preferences: UserPreferences
-    has_github_token: bool
+    github_id: int | None = None
+    github_login: str | None = None
+    github_connected: bool = False
 
 
 class PreferencesUpdate(BaseModel):
     llm_model: str | None = None
     min_severity: str | None = None
-    #: Plaintext on the way in; stored encrypted. Empty string clears it.
-    github_token: str | None = None

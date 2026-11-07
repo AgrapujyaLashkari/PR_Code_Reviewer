@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import auth, reviews, system, ws
+from app.api.v1 import auth, github, reviews, system, ws
 from app.config import settings
 from app.db import mongo
 
@@ -48,6 +48,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(auth.router, prefix="/api/v1")
+    app.include_router(github.router, prefix="/api/v1")
     app.include_router(reviews.router, prefix="/api/v1")
     app.include_router(system.router, prefix="/api/v1")
     app.include_router(ws.router)

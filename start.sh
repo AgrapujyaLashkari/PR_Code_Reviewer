@@ -11,7 +11,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_PORT="${BACKEND_PORT:-8001}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 MONGO_PORT="${MONGO_PORT:-27017}"
-OLLAMA_PORT="${OLLAMA_PORT:-11434}"
 
 BACKEND_PID=""
 FRONTEND_PID=""
@@ -99,6 +98,9 @@ trap on_signal INT TERM
 trap cleanup EXIT
 
 # --- prerequisites -----------------------------------------------------------
+# Official uv install lands in ~/.local/bin; conda/venv PATH often omits it.
+export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:/opt/homebrew/bin:${PATH}"
+
 require uv 'install it with: curl -LsSf https://astral.sh/uv/install.sh | sh'
 require npm 'install Node.js 20+ from https://nodejs.org'
 
@@ -137,8 +139,9 @@ case "${MONGO_URL:-mongodb://localhost}" in
   ;;
 esac
 
-port_open "$OLLAMA_PORT" ||
-  warn "ollama is not answering on $OLLAMA_PORT — reviews will fail until 'ollama serve' is running"
+if ! grep -q '^GEMINI_API_KEY=.\+' "$ROOT_DIR/.env" 2>/dev/null; then
+  warn "GEMINI_API_KEY is empty — agent reviews will fail until you add a Gemini API key to .env"
+fi
 
 # --- servers -----------------------------------------------------------------
 step "backend  -> http://localhost:$BACKEND_PORT/docs"
