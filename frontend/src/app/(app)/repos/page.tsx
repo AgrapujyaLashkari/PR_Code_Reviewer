@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { Alert, Button, Card, Spinner, TextArea } from '@/components/ui/primitives';
+import { Alert, Button, Card, EmptyState, Spinner, TextArea } from '@/components/ui/primitives';
 import { ApiError, api } from '@/lib/api';
 import type { ConnectedRepo } from '@/lib/types';
 
@@ -80,26 +80,24 @@ export default function ReposPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="text-title">Repositories</h1>
-          <p className="text-muted mt-1 text-sm">
+          <p className="text-muted mt-1 max-w-xl text-sm">
             Install the GitHub App on a repo — the same way you connect a project on Vercel.
             Pull requests are reviewed automatically. No personal access token.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => void handleSync()} disabled={saving === 'sync'}>
+        <div className="flex shrink-0 gap-2">
+          <Button onClick={() => void handleSync()} disabled={saving === 'sync'}>
             {saving === 'sync' && <Spinner />}
             Sync
           </Button>
           {configured && installUrl !== '' && (
-            <a href={installUrl}>
-              <Button variant="primary" size="sm">
-                Connect GitHub repos
-              </Button>
-            </a>
+            <Button asChild variant="primary">
+              <a href={installUrl}>Connect GitHub repos</a>
+            </Button>
           )}
         </div>
       </div>
@@ -118,12 +116,17 @@ export default function ReposPage() {
           Loading…
         </div>
       ) : repos.length === 0 ? (
-        <Card className="p-6">
-          <p className="text-sm">
-            No repositories yet. Click <strong>Connect GitHub repos</strong> and pick the
-            repositories this app may review.
-          </p>
-        </Card>
+        <EmptyState
+          title="No repositories yet"
+          description="Install the GitHub App and pick the repositories ReviewPulse may review. Pull requests are then reviewed automatically."
+          action={
+            configured && installUrl !== '' ? (
+              <Button asChild variant="primary" className="mt-2">
+                <a href={installUrl}>Connect GitHub repos</a>
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <ul className="flex flex-col gap-3">
           {repos.map((repo) => (

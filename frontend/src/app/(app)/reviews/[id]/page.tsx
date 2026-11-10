@@ -148,7 +148,7 @@ export default function ReviewPage() {
   const openFindings = findings.filter((f) => f.status === 'open');
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
       <header className="border-border-default border-b">
         <div className="flex flex-wrap items-start justify-between gap-3 pb-4">
           <div className="min-w-0">

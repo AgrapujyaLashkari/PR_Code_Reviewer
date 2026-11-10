@@ -46,8 +46,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-8">
       <h1 className="text-title">Settings</h1>
+      <p className="text-muted mt-1 text-sm">Model, severity, and GitHub connection.</p>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         {message !== undefined && <Alert tone="success">{message}</Alert>}
@@ -102,7 +103,7 @@ export default function SettingsPage() {
 
         <Card className="flex flex-col gap-3 p-4">
           <h2 className="text-eyebrow">GitHub</h2>
-          {user?.github_login !== undefined && user.github_login !== '' ? (
+          {user?.github_login ? (
             <p className="text-sm">
               Signed in as <span className="font-mono">@{user.github_login}</span>
               {user.github_connected ? ' · GitHub App installed' : ' · App not installed yet'}
@@ -112,11 +113,9 @@ export default function SettingsPage() {
               Sign in with GitHub, then install the app on the repositories to review.
             </p>
           )}
-          <Link href="/repos">
-            <Button type="button" size="sm" variant="primary">
-              Manage repositories
-            </Button>
-          </Link>
+          <Button asChild type="button" variant="primary">
+            <Link href="/repos">Manage repositories</Link>
+          </Button>
         </Card>
 
         {capabilities !== undefined && (

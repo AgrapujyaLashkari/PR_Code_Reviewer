@@ -1,10 +1,10 @@
 'use client';
 
-import { GitPullRequest, Upload, FileText, Terminal } from 'lucide-react';
+import { FileText, FolderGit2, GitPullRequest, Terminal, Upload } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Alert, Card, EmptyState, Spinner, Button } from '@/components/ui/primitives';
+import { Alert, Button, Card, EmptyState, Spinner } from '@/components/ui/primitives';
 import { api } from '@/lib/api';
 import { SEVERITY_FILL, SEVERITY_LABEL, SEVERITY_ORDER, riskLabel } from '@/lib/display';
 import type { ReviewSummary } from '@/lib/types';
@@ -29,8 +29,6 @@ export default function DashboardPage() {
   const [reviews, setReviews] = useState<ReviewSummary[] | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  // State is set from the promise callback, and a cancelled flag stops a slow
-  // response from overwriting newer state after the user navigates away.
   const load = useCallback(
     (isCancelled: () => boolean = () => false) =>
       api
@@ -52,7 +50,6 @@ export default function DashboardPage() {
     };
   }, [load]);
 
-  // A queued or running review finishes in the background; poll until it lands.
   useEffect(() => {
     const pending = reviews?.some(
       (review) => review.status === 'queued' || review.status === 'running',
@@ -62,44 +59,89 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, [reviews, load]);
 
+  const inFlight = useMemo(
+    () =>
+      reviews?.filter(
+        (review) => review.status === 'queued' || review.status === 'running',
+      ) ?? [],
+    [reviews],
+  );
+  const settled = useMemo(
+    () =>
+      reviews?.filter(
+        (review) => review.status !== 'queued' && review.status !== 'running',
+      ) ?? [],
+    [reviews],
+  );
+
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-8 sm:py-8">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-title">Reviews</h1>
-          <p className="text-muted mt-1 text-sm">
-            Submitted code is split by layer and reviewed by a dedicated agent on each one.
+          <p className="text-muted mt-1 max-w-xl text-sm leading-relaxed">
+            Pull requests and uploads, checked by security and quality agents.
           </p>
         </div>
+        <Button asChild variant="primary" className="hidden lg:inline-flex">
+          <Link href="/reviews/new">Start a review</Link>
+        </Button>
       </div>
 
-      {error !== undefined && <Alert>{error}</Alert>}
+      {error !== undefined && (
+        <div className="mb-6">
+          <Alert>{error}</Alert>
+        </div>
+      )}
 
       {reviews === undefined ? (
-        <div className="text-muted flex items-center gap-2 py-12 text-sm">
+        <div className="text-muted flex items-center gap-2 py-16 text-sm">
           <Spinner />
           Loading…
         </div>
       ) : reviews.length === 0 ? (
         <EmptyState
           title="No reviews yet"
-          description="Upload a file, paste code, or give a GitHub pull request URL to run the security and quality agents."
+          description="Connect a GitHub repository to review pull requests automatically, or start one from a file."
           action={
-            <Link href="/reviews/new" className="mt-2">
-              <Button variant="primary" size="sm">
-                Start the first review
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button asChild variant="primary">
+                <Link href="/repos">
+                  <FolderGit2 className="size-4" />
+                  Connect a repository
+                </Link>
               </Button>
-            </Link>
+              <Button asChild variant="ghost">
+                <Link href="/reviews/new">Start from a file</Link>
+              </Button>
+            </div>
           }
         />
       ) : (
-        <ul className="flex flex-col gap-2">
-          {reviews.map((review) => (
-            <li key={review.id}>
-              <ReviewRow review={review} />
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-8">
+          {inFlight.length > 0 && (
+            <section>
+              <h2 className="text-eyebrow mb-3">In progress</h2>
+              <ul className="flex flex-col gap-3">
+                {inFlight.map((review) => (
+                  <li key={review.id}>
+                    <ReviewRow review={review} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <section>
+            {inFlight.length > 0 && <h2 className="text-eyebrow mb-3">Completed</h2>}
+            <ul className="flex flex-col gap-3">
+              {settled.map((review) => (
+                <li key={review.id}>
+                  <ReviewRow review={review} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       )}
     </div>
   );
@@ -112,12 +154,14 @@ function ReviewRow({ review }: { review: ReviewSummary }) {
     (sum, severity) => sum + (review.stats.by_severity[severity] ?? 0),
     0,
   );
-  const inFlight = review.status === 'queued' || review.status === 'running';
+  const pending = review.status === 'queued' || review.status === 'running';
 
   return (
     <Link href={`/reviews/${review.id}`} className="block">
-      <Card className="hover:border-accent-ring hover:bg-surface-overlay flex items-center gap-4 p-4 transition-colors">
-        <Icon aria-hidden className="text-muted size-5 shrink-0" />
+      <Card className="hover:bg-base-200 flex min-h-16 items-center gap-4 p-4">
+        <span className="bg-accent-soft text-accent flex size-10 shrink-0 items-center justify-center rounded-xl">
+          <Icon aria-hidden className="size-4" />
+        </span>
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">
@@ -159,8 +203,8 @@ function ReviewRow({ review }: { review: ReviewSummary }) {
         )}
 
         <div className="w-28 shrink-0 text-right">
-          {inFlight ? (
-            <span className="text-accent inline-flex items-center gap-1.5 text-xs">
+          {pending ? (
+            <span className="text-accent inline-flex items-center gap-1.5 text-xs font-medium">
               <Spinner />
               {STATUS_LABEL[review.status]}
             </span>

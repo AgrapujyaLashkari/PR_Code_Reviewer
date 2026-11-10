@@ -1,50 +1,114 @@
 @import 'tailwindcss';
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
 
-/*
- * A dark-only instrument palette, and one rule behind it: colour means
- * something here, so none is spent on chrome.
- *
- * Buttons, active tabs and focus rings are bone white on graphite - no brand
- * hue at all. Everything chromatic on the page is therefore load-bearing: the
- * severity ramp, and a teal that marks exactly one thing, a finding some
- * deterministic tool independently corroborated. Nothing competes with them.
- *
- * There is no light theme. `color-scheme` below tells the browser that, so
- * native selects, file inputs, scrollbars and autofill render dark too.
- */
-:root {
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f6f8fa;
+  --color-base-300: #d0d7de;
+  --color-base-content: #1f2328;
+  --color-primary: #5b4ce8;
+  --color-primary-content: #ffffff;
+  --color-neutral: #24292f;
+  --color-neutral-content: #ffffff;
+  --color-success: #1f883d;
+  --color-success-content: #ffffff;
+  --color-error: #cf222e;
+  --color-error-content: #ffffff;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+  --radius-selector: 1rem;
+  --size-field: 0.3125rem;
+  --size-selector: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  prefersdark: true;
   color-scheme: dark;
+  --color-base-100: #0d1117;
+  --color-base-200: #161b22;
+  --color-base-300: #30363d;
+  --color-base-content: #e6edf3;
+  --color-primary: #8b7cff;
+  --color-primary-content: #0d1117;
+  --color-neutral: #21262d;
+  --color-neutral-content: #e6edf3;
+  --color-success: #3fb950;
+  --color-success-content: #0d1117;
+  --color-error: #f85149;
+  --color-error-content: #0d1117;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+  --radius-selector: 1rem;
+  --size-field: 0.3125rem;
+  --size-selector: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
 
-  --background: #0a0d14;
-  --surface: #0f131b;
-  --surface-raised: #12161f;
-  --surface-overlay: #1a1f2b;
-  --border: #262c38;
-  --border-muted: #1b202b;
-  --foreground: #eceff4;
-  --muted: #8b93a7;
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-  /* The "accent" is an absence of one: bone white, dark type on top. */
-  --accent: #eceff4;
-  --accent-hover: #ffffff;
-  --accent-soft: rgba(236, 239, 244, 0.09);
-  --accent-ring: rgba(236, 239, 244, 0.28);
-  --accent-contrast: #0a0d14;
+@theme inline {
+  --color-background: var(--color-base-100);
+  --color-surface: var(--color-base-100);
+  --color-surface-raised: var(--color-base-100);
+  --color-surface-overlay: var(--color-base-200);
+  --color-border-default: var(--color-base-300);
+  --color-border-muted: var(--color-base-300);
+  --color-foreground: var(--color-base-content);
+  --color-muted: var(--muted-fg);
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary);
+  --color-accent-soft: color-mix(in oklab, var(--color-primary) 14%, transparent);
+  --color-accent-ring: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  --color-accent-contrast: var(--color-primary-content);
+  --color-verified: var(--color-success);
+  --color-verified-soft: color-mix(in oklab, var(--color-success) 14%, transparent);
+  --color-verified-ring: color-mix(in oklab, var(--color-success) 32%, transparent);
+  --color-danger: var(--color-error);
+  --color-danger-soft: color-mix(in oklab, var(--color-error) 12%, transparent);
+  --color-danger-ring: color-mix(in oklab, var(--color-error) 32%, transparent);
+  --color-code-background: var(--color-base-200);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-jetbrains-mono);
+}
 
-  /* Reserved for corroboration. Nothing else may use it. */
-  --verified: #2dd4bf;
-  --verified-soft: rgba(45, 212, 191, 0.12);
-  --verified-ring: rgba(45, 212, 191, 0.35);
+:root {
+  --muted-fg: #656d76;
+  --severity-critical: #e11d48;
+  --severity-critical-soft: rgba(225, 29, 72, 0.12);
+  --severity-critical-ring: rgba(225, 29, 72, 0.3);
+  --severity-high: #ea580c;
+  --severity-high-soft: rgba(234, 88, 12, 0.12);
+  --severity-high-ring: rgba(234, 88, 12, 0.3);
+  --severity-medium: #d97706;
+  --severity-medium-soft: rgba(217, 119, 6, 0.14);
+  --severity-medium-ring: rgba(217, 119, 6, 0.32);
+  --severity-low: #0284c7;
+  --severity-low-soft: rgba(2, 132, 199, 0.12);
+  --severity-low-ring: rgba(2, 132, 199, 0.3);
+  --severity-info: #64748b;
+  --severity-info-soft: rgba(100, 116, 139, 0.12);
+  --severity-info-ring: rgba(100, 116, 139, 0.28);
+  --line-added: rgba(31, 136, 61, 0.12);
+  --line-removed: rgba(225, 29, 72, 0.1);
+  --line-highlight: rgba(245, 158, 11, 0.12);
+  --app-header-height: 3.5rem;
+  --review-toolbar-height: 3.25rem;
+  --sidebar-width: 16rem;
+}
 
-  --danger: #ff4d6d;
-  --danger-soft: rgba(255, 77, 109, 0.12);
-  --danger-ring: rgba(255, 77, 109, 0.35);
-
-  --code-background: #0a0e15;
-  --line-added: rgba(45, 212, 191, 0.09);
-  --line-removed: rgba(255, 77, 109, 0.09);
-  --line-highlight: rgba(255, 197, 61, 0.07);
-
+[data-theme='dark'] {
+  --muted-fg: #8b949e;
   --severity-critical: #ff4d6d;
   --severity-critical-soft: rgba(255, 77, 109, 0.14);
   --severity-critical-ring: rgba(255, 77, 109, 0.35);
@@ -60,42 +124,12 @@
   --severity-info: #7a8399;
   --severity-info-soft: rgba(122, 131, 153, 0.16);
   --severity-info-ring: rgba(122, 131, 153, 0.35);
-
-  /* Sticky offsets: the review toolbar pins under the app header, and file
-   * headers pin under the toolbar. Kept here so the three cannot drift. */
-  --app-header-height: 3.25rem;
-  --review-toolbar-height: 3.25rem;
+  --line-added: rgba(63, 185, 80, 0.12);
+  --line-removed: rgba(255, 77, 109, 0.09);
+  --line-highlight: rgba(255, 197, 61, 0.07);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-surface-overlay: var(--surface-overlay);
-  --color-border-default: var(--border);
-  --color-border-muted: var(--border-muted);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-soft: var(--accent-soft);
-  --color-accent-ring: var(--accent-ring);
-  --color-accent-contrast: var(--accent-contrast);
-
-  --color-verified: var(--verified);
-  --color-verified-soft: var(--verified-soft);
-  --color-verified-ring: var(--verified-ring);
-
-  --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
-  --color-danger-ring: var(--danger-ring);
-
-  --color-code-background: var(--code-background);
-  --color-line-added: var(--line-added);
-  --color-line-removed: var(--line-removed);
-  --color-line-highlight: var(--line-highlight);
-
   --color-severity-critical: var(--severity-critical);
   --color-severity-critical-soft: var(--severity-critical-soft);
   --color-severity-critical-ring: var(--severity-critical-ring);
@@ -111,28 +145,25 @@
   --color-severity-info: var(--severity-info);
   --color-severity-info-soft: var(--severity-info-soft);
   --color-severity-info-ring: var(--severity-info-ring);
+  --color-line-added: var(--line-added);
+  --color-line-removed: var(--line-removed);
+  --color-line-highlight: var(--line-highlight);
+}
 
-  --font-sans: var(--font-plex-sans);
-  --font-mono: var(--font-jetbrains-mono);
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
-/*
- * Type scale. The app is dense on purpose - a reviewer wants more findings on
- * screen, not more air - so the scale is tight and the weight does the work.
- */
 .text-title {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
+  font-size: 1.5rem;
+  line-height: 2rem;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.03em;
 }
 
 .text-section {
@@ -142,17 +173,22 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Small caps-ish label above a panel: says "this is a category", not content. */
 .text-eyebrow {
-  font-size: 0.6875rem;
-  line-height: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+  letter-spacing: -0.01em;
+  color: var(--color-base-content);
 }
 
-/* Code surfaces use tabular figures so line numbers stay in a straight column. */
+@utility btn {
+  min-height: 2.75rem;
+}
+
+.menu :where(li > *) {
+  min-height: 2.75rem;
+}
+
 .code-surface {
   font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
   font-size: 12.5px;
@@ -160,59 +196,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/*
- * The provenance rail.
- *
- * It answers exactly one question - was this claim independently reproduced -
- * and deliberately not "how bad is it": severity is already on the pill beside
- * the title and on the gutter bar next to the line. A rail that repeated it
- * would be decoration, and decoration is what a coloured side stripe looks
- * like when it is not carrying anything.
- *
- * So: teal when a deterministic tool reproduced the finding, neutral when it
- * did not, and broken when only the model ever asserted it. Unverified
- * evidence literally looks unfinished, which is the judgement a reviewer has
- * to make anyway.
- */
 .rail {
-  border-left: 2px solid var(--rail-color, var(--border));
+  border-left: 2px solid var(--rail-color, var(--color-base-300));
 }
 
-.rail-dashed {
-  border-left: 2px solid transparent;
-  border-image: repeating-linear-gradient(
-      to bottom,
-      var(--rail-color, var(--border)) 0 5px,
-      transparent 5px 10px
-    )
-    1;
-}
-
-/*
- * Visible focus everywhere; the default outline disappears on coloured chips.
- *
- * Written out rather than wrapped in `:where()`: that has zero specificity, so
- * the browser's own `:focus-visible` rule wins the colour and the ring comes
- * back grey instead of bone white.
- */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible,
-[tabindex]:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Scrollbars, so a pinned file tree does not punch a light hole in the page. */
-* {
-  scrollbar-color: var(--border) transparent;
-  scrollbar-width: thin;
+@media (min-width: 768px) {
+  :root {
+    --app-header-height: 0px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {

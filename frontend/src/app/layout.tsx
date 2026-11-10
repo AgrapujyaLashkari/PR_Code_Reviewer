@@ -1,14 +1,11 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google';
 
+import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/lib/auth-context';
 
 import './globals.css';
 
-// Plex for the interface and JetBrains for anything machine-written: the pair
-// reads as instrumentation rather than as a website, which is what a review
-// surface is. JetBrains Mono in particular holds up at the 12.5px the code
-// viewer runs at.
 const plexSans = IBM_Plex_Sans({
   variable: '--font-plex-sans',
   subsets: ['latin', 'latin-ext'],
@@ -21,7 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Code Review Agent',
+  title: 'ReviewPulse',
   description:
     'Multi-agent AI code review and security analysis. ' +
     'Every finding is cross-checked with static analysis.',
@@ -33,16 +30,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${plexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="bg-background flex min-h-full flex-col">
-        <a
-          href="#main"
-          className="focus:bg-accent focus:text-accent-contrast sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:px-3 focus:py-2 focus:font-medium"
-        >
+      <body className="min-h-full">
+        <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
           Skip to content
         </a>
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

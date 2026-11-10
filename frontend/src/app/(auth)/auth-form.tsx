@@ -5,8 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { z } from 'zod';
 
+import { ThemeToggle } from '@/components/theme-toggle';
+import { GitHubIcon } from '@/components/ui/github-icon';
 import { Logo } from '@/components/ui/logo';
-import { Alert, Button, Card, Field, Spinner } from '@/components/ui/primitives';
+import { Alert, Button, Field, Spinner } from '@/components/ui/primitives';
 import { ApiError, api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
@@ -20,13 +22,13 @@ type Mode = 'login' | 'register';
 const COPY = {
   login: {
     title: 'Sign in',
-    submit: 'Sign in',
+    submit: 'Sign in with email',
     switchText: "Don't have an account?",
     switchLabel: 'Register',
     switchHref: '/register',
   },
   register: {
-    title: 'Register',
+    title: 'Create your account',
     submit: 'Create account',
     switchText: 'Already have an account?',
     switchLabel: 'Sign in',
@@ -84,30 +86,66 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   return (
-    <main id="main" className="flex flex-1 items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <h1 className="text-title inline-flex items-center gap-2.5">
-            <Logo size={22} />
-            Code Review Agent
-          </h1>
-          <p className="text-muted mt-1 text-sm">
-            Multi-agent code review and security analysis
+    <main id="main" className="grid min-h-screen lg:grid-cols-2">
+      <section className="bg-base-200 hidden flex-col justify-between p-10 pb-16 lg:flex">
+        <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
+          <Logo size={22} />
+          ReviewPulse
+        </Link>
+
+        <div className="max-w-lg">
+          <h2 className="text-3xl font-semibold tracking-tight">
+            GitHub PRs reviewed automatically.
+          </h2>
+          <p className="text-muted mt-3 text-sm leading-relaxed">
+            Install the app on a repository. Agents check security and quality, then static
+            tools confirm what they find.
           </p>
+          <div className="mockup-code bg-neutral text-neutral-content mt-8 text-sm">
+            <pre data-prefix="38">
+              <code>query += username</code>
+            </pre>
+            <pre data-prefix="!" className="bg-error text-error-content">
+              <code>SQL injection — user input concatenated into SQL</code>
+            </pre>
+            <pre data-prefix="✓" className="text-success">
+              <code>bandit confirmed · high</code>
+            </pre>
+          </div>
         </div>
 
-        <Card className="p-6">
-          <h2 className="text-section mb-4">{copy.title}</h2>
+        <p className="text-muted text-sm">No personal access token required</p>
+      </section>
+
+      <section className="relative flex items-center justify-center px-4 py-16">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
+        <div className="w-full max-w-sm">
+          <div className="mb-8 lg:hidden">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold">
+              <Logo size={20} />
+              ReviewPulse
+            </Link>
+          </div>
+
+          <h1 className="text-title">{copy.title}</h1>
+          <p className="text-muted mt-1 mb-6 text-sm leading-relaxed">
+            Use GitHub to connect repositories, or continue with email.
+          </p>
 
           <a
             href={api.githubLoginUrl()}
-            className="border-border-default hover:border-accent-ring mb-4 flex h-9 items-center justify-center rounded-md border bg-surface-raised text-sm font-medium transition-colors"
+            className="btn btn-block min-h-11 border-0 bg-[#1f883d]! text-white! hover:bg-[#1a7f37]!"
           >
-            Continue with GitHub
+            <GitHubIcon className="size-5" />
+            Sign in with GitHub
           </a>
-          <p className="text-muted mb-4 text-center text-xs">or</p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+          <div className="divider text-base-content/40 text-xs">or</div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-2" noValidate>
             {formError !== undefined && <Alert>{formError}</Alert>}
 
             <Field
@@ -132,23 +170,20 @@ export function AuthForm({ mode }: { mode: Mode }) {
               hint={mode === 'register' ? 'At least 8 characters' : undefined}
             />
 
-            <Button type="submit" variant="primary" disabled={submitting}>
+            <Button type="submit" className="btn-block mt-2" disabled={submitting}>
               {submitting && <Spinner />}
               {copy.submit}
             </Button>
           </form>
-        </Card>
 
-        <p className="text-muted mt-4 text-center text-sm">
-          {copy.switchText}{' '}
-          <Link
-            href={copy.switchHref}
-            className="text-accent hover:text-accent-hover font-medium transition-colors hover:underline"
-          >
-            {copy.switchLabel}
-          </Link>
-        </p>
-      </div>
+          <p className="text-muted mt-5 text-center text-sm">
+            {copy.switchText}{' '}
+            <Link href={copy.switchHref} className="link link-primary">
+              {copy.switchLabel}
+            </Link>
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

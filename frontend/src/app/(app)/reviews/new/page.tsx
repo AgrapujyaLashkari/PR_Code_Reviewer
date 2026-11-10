@@ -1,5 +1,6 @@
 'use client';
 
+import { FileCode2, GitPullRequest, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 
@@ -17,10 +18,10 @@ import { cn } from '@/lib/utils';
 
 type Tab = 'upload' | 'paste' | 'pull_request';
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'upload', label: 'Upload files / ZIP' },
-  { id: 'paste', label: 'Paste code' },
-  { id: 'pull_request', label: 'GitHub PR' },
+const TABS: { id: Tab; label: string; hint: string; icon: typeof Upload }[] = [
+  { id: 'upload', label: 'Upload files', hint: 'Files or a ZIP archive', icon: Upload },
+  { id: 'paste', label: 'Paste code', hint: 'A single snippet', icon: FileCode2 },
+  { id: 'pull_request', label: 'GitHub PR', hint: 'Connected repository', icon: GitPullRequest },
 ];
 
 const SAMPLE = `import sqlite3
@@ -84,11 +85,11 @@ export default function NewReviewPage() {
         : prUrl.trim().length > 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
       <h1 className="text-title">New review</h1>
-      <p className="text-muted mt-1 text-sm">
-        Code is split by layer. A separate agent reviews each layer for security and
-        quality, then findings are cross-checked with static analysis.
+      <p className="text-muted mt-1 text-sm leading-relaxed">
+        Pick a source. Agents review security and quality, then static analysis confirms
+        findings.
       </p>
 
       {capabilities !== undefined && !capabilities.llm_reachable && (
@@ -100,28 +101,27 @@ export default function NewReviewPage() {
         </div>
       )}
 
-      <div
-        role="tablist"
-        aria-label="Input source"
-        className="border-border-default mt-6 flex gap-1 border-b"
-      >
-        {TABS.map((item) => (
-          <button
-            key={item.id}
-            role="tab"
-            type="button"
-            aria-selected={tab === item.id}
-            onClick={() => setTab(item.id)}
-            className={cn(
-              '-mb-px border-b-2 px-3 py-2 text-sm transition-colors',
-              tab === item.id
-                ? 'border-b-accent text-foreground font-semibold'
-                : 'text-muted hover:text-foreground border-b-transparent',
-            )}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div role="tablist" aria-label="Input source" className="tabs tabs-box mt-8">
+        {TABS.map((item) => {
+          const Icon = item.icon;
+          const selected = tab === item.id;
+          return (
+            <button
+              key={item.id}
+              role="tab"
+              type="button"
+              aria-selected={selected}
+              onClick={() => setTab(item.id)}
+              className={cn('tab h-auto flex-1 gap-2 py-3', selected && 'tab-active')}
+            >
+              <Icon className="size-4" />
+              <span className="flex flex-col items-start text-left">
+                <span>{item.label}</span>
+                <span className="text-xs font-normal opacity-60">{item.hint}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
@@ -138,7 +138,7 @@ export default function NewReviewPage() {
               multiple
               accept=".py,.ts,.tsx,.js,.jsx,.sql,.yml,.yaml,.json,.zip,.sh,.css,.html"
               onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
-              className="text-muted file:border-border-default file:bg-surface file:text-foreground hover:file:border-accent-ring mt-2 block w-full text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border file:px-3 file:py-1.5 file:text-sm file:transition-colors"
+              className="file-input mt-2 w-full"
             />
             <p className="text-muted mt-2 text-xs">
               Python, TypeScript/JavaScript, SQL, YAML, Dockerfile, and similar text
@@ -176,7 +176,7 @@ export default function NewReviewPage() {
                 <button
                   type="button"
                   onClick={() => setCode(SAMPLE)}
-                  className="text-accent text-xs hover:underline"
+                  className="link link-primary text-xs"
                 >
                   Fill with sample vulnerable code
                 </button>

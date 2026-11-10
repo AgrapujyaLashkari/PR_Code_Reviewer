@@ -22,7 +22,7 @@ export function AgentProgress({
 }) {
   if (stages.length === 0) {
     return (
-      <div className="border-border-default bg-surface text-muted flex items-center gap-2 rounded-lg border px-4 py-3 text-sm">
+      <div className="border-border-default bg-surface-raised text-muted flex items-center gap-2 rounded-xl border px-4 py-3 text-sm shadow-[var(--shadow-card)]">
         <Spinner />
         {connected
           ? // Progress events are not replayed, so a client that connects
@@ -39,7 +39,7 @@ export function AgentProgress({
     <section
       aria-label="Review progress"
       aria-live="polite"
-      className="border-border-default overflow-hidden rounded-lg border"
+      className="border-border-default overflow-hidden rounded-xl border shadow-[var(--shadow-card)]"
     >
       <header className="border-border-default bg-surface flex items-center justify-between border-b px-4 py-2">
         <span className="text-sm font-medium">
