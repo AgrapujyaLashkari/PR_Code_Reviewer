@@ -9,6 +9,8 @@ import {
   Button,
   Card,
   Field,
+  Page,
+  PageHeader,
   Spinner,
   TextArea,
 } from '@/components/ui/primitives';
@@ -85,15 +87,14 @@ export default function NewReviewPage() {
         : prUrl.trim().length > 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
-      <h1 className="text-title">New review</h1>
-      <p className="text-muted mt-1 text-sm leading-relaxed">
-        Pick a source. Agents review security and quality, then static analysis confirms
-        findings.
-      </p>
+    <Page className="max-w-3xl">
+      <PageHeader
+        title="New review"
+        description="Pick a source. Agents review security and quality, then static analysis confirms findings."
+      />
 
       {capabilities !== undefined && !capabilities.llm_reachable && (
-        <div className="mt-4">
+        <div className="mb-6">
           <Alert>
             Gemini is not configured. Agent reviews need <code>GEMINI_API_KEY</code> in
             the server environment. Static analysis still runs.
@@ -101,7 +102,7 @@ export default function NewReviewPage() {
         </div>
       )}
 
-      <div role="tablist" aria-label="Input source" className="tabs tabs-box mt-8">
+      <div role="tablist" aria-label="Input source" className="tabs tabs-box">
         {TABS.map((item) => {
           const Icon = item.icon;
           const selected = tab === item.id;
@@ -128,7 +129,8 @@ export default function NewReviewPage() {
         {error !== undefined && <Alert>{error}</Alert>}
 
         {tab === 'upload' && (
-          <Card className="p-4">
+          <Card>
+            <div className="card-body p-6">
             <label htmlFor="files" className="text-sm font-medium">
               Source files
             </label>
@@ -138,7 +140,7 @@ export default function NewReviewPage() {
               multiple
               accept=".py,.ts,.tsx,.js,.jsx,.sql,.yml,.yaml,.json,.zip,.sh,.css,.html"
               onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
-              className="file-input mt-2 w-full"
+              className="file-input file-input-primary mt-2 w-full"
             />
             <p className="text-muted mt-2 text-xs">
               Python, TypeScript/JavaScript, SQL, YAML, Dockerfile, and similar text
@@ -156,11 +158,13 @@ export default function NewReviewPage() {
                 ))}
               </ul>
             )}
+            </div>
           </Card>
         )}
 
         {tab === 'paste' && (
-          <Card className="flex flex-col gap-3 p-4">
+          <Card>
+            <div className="card-body gap-3 p-6">
             <Field
               label="File name"
               name="filename"
@@ -190,11 +194,13 @@ export default function NewReviewPage() {
                 placeholder="Paste the code to review…"
               />
             </div>
+            </div>
           </Card>
         )}
 
         {tab === 'pull_request' && (
-          <Card className="p-4">
+          <Card>
+            <div className="card-body p-6">
             <Field
               label="Pull request URL"
               name="pr"
@@ -204,6 +210,7 @@ export default function NewReviewPage() {
               placeholder="https://github.com/owner/repo/pull/123"
               hint="Only the PR's changed lines are reviewed. The repo must be connected under Repositories (GitHub App). Opened PRs are reviewed automatically."
             />
+            </div>
           </Card>
         )}
 
@@ -220,6 +227,6 @@ export default function NewReviewPage() {
           )}
         </div>
       </form>
-    </div>
+    </Page>
   );
 }

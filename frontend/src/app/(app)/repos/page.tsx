@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { Alert, Button, Card, EmptyState, Spinner, TextArea } from '@/components/ui/primitives';
+import {
+  Alert,
+  Button,
+  EmptyState,
+  ListSkeleton,
+  Page,
+  PageHeader,
+  Spinner,
+  TextArea,
+} from '@/components/ui/primitives';
 import { ApiError, api } from '@/lib/api';
 import type { ConnectedRepo } from '@/lib/types';
 
@@ -80,48 +89,48 @@ export default function ReposPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-title">Repositories</h1>
-          <p className="text-muted mt-1 max-w-xl text-sm">
-            Install the GitHub App on a repo — the same way you connect a project on Vercel.
-            Pull requests are reviewed automatically. No personal access token.
-          </p>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <Button onClick={() => void handleSync()} disabled={saving === 'sync'}>
-            {saving === 'sync' && <Spinner />}
-            Sync
-          </Button>
-          {configured && installUrl !== '' && (
-            <Button asChild variant="primary">
-              <a href={installUrl}>Connect GitHub repos</a>
+    <Page className="max-w-3xl">
+      <PageHeader
+        title="Repositories"
+        description="Install the GitHub App on a repo. Pull requests are reviewed automatically. No personal access token."
+        actions={
+          <div className="flex shrink-0 gap-2">
+            <Button onClick={() => void handleSync()} disabled={saving === 'sync'}>
+              {saving === 'sync' && <Spinner />}
+              Sync
             </Button>
-          )}
-        </div>
-      </div>
+            {configured && installUrl !== '' && (
+              <Button asChild variant="primary">
+                <a href={installUrl}>Connect GitHub repos</a>
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {!configured && (
-        <Alert>
-          This server has no GitHub App credentials. Add GITHUB_APP_* to .env (see
-          .env.example).
-        </Alert>
+        <div className="mb-4">
+          <Alert>
+            This server has no GitHub App credentials. Add GITHUB_APP_* to .env (see
+            .env.example).
+          </Alert>
+        </div>
       )}
-      {error !== undefined && <Alert>{error}</Alert>}
+      {error !== undefined && (
+        <div className="mb-4">
+          <Alert>{error}</Alert>
+        </div>
+      )}
 
       {repos === undefined ? (
-        <div className="text-muted flex items-center gap-2 py-12 text-sm">
-          <Spinner />
-          Loading…
-        </div>
+        <ListSkeleton rows={3} />
       ) : repos.length === 0 ? (
         <EmptyState
           title="No repositories yet"
           description="Install the GitHub App and pick the repositories ReviewPulse may review. Pull requests are then reviewed automatically."
           action={
             configured && installUrl !== '' ? (
-              <Button asChild variant="primary" className="mt-2">
+              <Button asChild variant="primary">
                 <a href={installUrl}>Connect GitHub repos</a>
               </Button>
             ) : undefined
@@ -131,54 +140,73 @@ export default function ReposPage() {
         <ul className="flex flex-col gap-3">
           {repos.map((repo) => (
             <li key={repo.full_name}>
-              <Card className="flex flex-col gap-3 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-mono text-sm font-medium">{repo.full_name}</p>
-                    <p className="text-muted text-xs">
-                      {repo.private ? 'Private' : 'Public'}
-                      {repo.enabled ? ' · reviewing PRs' : ' · paused'}
-                    </p>
+              <article className="card card-border bg-base-100">
+                <div className="card-body gap-4 p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-mono text-sm font-medium">{repo.full_name}</p>
+                      <p className="text-muted mt-1 text-xs">
+                        {repo.private ? 'Private' : 'Public'}
+                        {repo.enabled ? ' · reviewing PRs' : ' · paused'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={
+                          repo.enabled
+                            ? 'badge badge-success badge-soft'
+                            : 'badge badge-ghost'
+                        }
+                      >
+                        {repo.enabled ? 'Active' : 'Paused'}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant={repo.enabled ? 'secondary' : 'primary'}
+                        disabled={saving === repo.full_name}
+                        onClick={() => void handleToggle(repo)}
+                      >
+                        {repo.enabled ? 'Pause' : 'Enable'}
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant={repo.enabled ? 'secondary' : 'primary'}
-                    disabled={saving === repo.full_name}
-                    onClick={() => void handleToggle(repo)}
-                  >
-                    {repo.enabled ? 'Pause' : 'Enable'}
-                  </Button>
+
+                  <div className="collapse-arrow border-base-300 collapse rounded-box border">
+                    <input type="checkbox" />
+                    <div className="collapse-title min-h-11 text-sm font-medium">
+                      Repo guidelines
+                    </div>
+                    <div className="collapse-content">
+                      <TextArea
+                        rows={4}
+                        value={guidelines[repo.full_name] ?? ''}
+                        onChange={(event) =>
+                          setGuidelines((current) => ({
+                            ...current,
+                            [repo.full_name]: event.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-muted mt-2 text-xs">
+                        Passed to every agent as extra repo-specific context.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="mt-3"
+                        disabled={saving === repo.full_name}
+                        onClick={() => void handleSaveGuidelines(repo)}
+                      >
+                        {saving === repo.full_name && <Spinner />}
+                        Save guidelines
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium">Repo guidelines (optional)</span>
-                  <TextArea
-                    rows={4}
-                    value={guidelines[repo.full_name] ?? ''}
-                    onChange={(event) =>
-                      setGuidelines((current) => ({
-                        ...current,
-                        [repo.full_name]: event.target.value,
-                      }))
-                    }
-                  />
-                  <span className="text-muted text-xs">
-                    Passed to every agent as extra repo-specific context.
-                  </span>
-                </label>
-                <div>
-                  <Button
-                    size="sm"
-                    disabled={saving === repo.full_name}
-                    onClick={() => void handleSaveGuidelines(repo)}
-                  >
-                    Save guidelines
-                  </Button>
-                </div>
-              </Card>
+              </article>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </Page>
   );
 }

@@ -10,7 +10,15 @@ import { FileTree } from '@/components/review/file-tree';
 import { FindingThread } from '@/components/review/finding-thread';
 import { ReviewToolbar } from '@/components/review/review-toolbar';
 import { SummaryPanel } from '@/components/review/summary-panel';
-import { Alert, Button, Card, EmptyState, Spinner } from '@/components/ui/primitives';
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  ListSkeleton,
+  Page,
+  Spinner,
+} from '@/components/ui/primitives';
 import { useReviewSocket } from '@/hooks/use-review-socket';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -130,26 +138,29 @@ export default function ReviewPage() {
 
   if (error !== undefined) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-8">
+      <Page className="max-w-3xl">
         <Alert>{error}</Alert>
-      </div>
+      </Page>
     );
   }
 
   if (review === undefined) {
     return (
-      <div className="text-muted flex items-center justify-center gap-2 py-16 text-sm">
-        <Spinner />
-        Loading…
-      </div>
+      <Page wide>
+        <div className="mb-8 flex flex-col gap-3">
+          <div className="skeleton h-8 w-64" />
+          <div className="skeleton h-4 w-40" />
+        </div>
+        <ListSkeleton rows={5} />
+      </Page>
     );
   }
 
   const openFindings = findings.filter((f) => f.status === 'open');
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
-      <header className="border-border-default border-b">
+    <Page wide>
+      <header className="border-base-300 border-b">
         <div className="flex flex-wrap items-start justify-between gap-3 pb-4">
           <div className="min-w-0">
             <h1 className="text-title flex items-center gap-2">
@@ -158,7 +169,7 @@ export default function ReviewPage() {
               )}
               <span className="truncate">{review.source.label}</span>
             </h1>
-            <p className="text-muted mt-1 text-sm">
+            <p className="text-muted mt-2 text-sm">
               {review.stats.files_analysed || review.files.length} files ·{' '}
               <code className="font-mono">{review.llm_model}</code>
               {review.source.commit_sha !== undefined &&
@@ -188,7 +199,7 @@ export default function ReviewPage() {
           </div>
         </div>
 
-        <nav role="tablist" aria-label="Review sections" className="-mb-px flex gap-1">
+        <nav role="tablist" aria-label="Review sections" className="tabs tabs-border">
           <TabButton id="conversation" active={tab} onSelect={setTab} label="Summary" />
           <TabButton
             id="files"
@@ -239,7 +250,7 @@ export default function ReviewPage() {
         )}
         {tab === 'checks' && <ChecksTab patches={patches} />}
       </div>
-    </div>
+    </Page>
   );
 }
 
@@ -263,19 +274,14 @@ function TabButton({
       type="button"
       aria-selected={isActive}
       onClick={() => onSelect(id)}
-      className={cn(
-        'inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm transition-colors',
-        isActive
-          ? 'border-b-accent text-foreground font-semibold'
-          : 'text-muted hover:text-foreground border-b-transparent',
-      )}
+      className={cn('tab gap-2', isActive && 'tab-active')}
     >
       {label}
       {count !== undefined && (
         <span
           className={cn(
-            'rounded-full px-1.5 py-0.5 text-xs tabular-nums',
-            isActive ? 'bg-accent-soft text-accent' : 'bg-surface text-muted',
+            'badge badge-sm tabular-nums',
+            isActive ? 'badge-primary badge-soft' : 'badge-ghost',
           )}
         >
           {count}
@@ -326,7 +332,7 @@ function ConversationTab({
             {ranked.map((finding) => (
               <li key={finding.id}>
                 <Card className="overflow-hidden">
-                  <div className="border-border-muted bg-surface border-b px-4 py-1.5">
+                  <div className="border-base-300 bg-base-200/60 border-b px-4 py-1.5">
                     <code className="text-muted font-mono text-xs">
                       {finding.file_path}:{finding.line_start}
                     </code>
@@ -574,7 +580,7 @@ function ChecksTab({ patches }: { patches: Patch[] }) {
       {patches.map((patch) => (
         <li key={patch.file_path}>
           <Card className="overflow-hidden">
-            <header className="border-border-default bg-surface flex flex-wrap items-center gap-2 border-b px-4 py-2">
+            <header className="border-base-300 bg-base-200/60 flex flex-wrap items-center gap-2 border-b px-4 py-2.5">
               <code className="font-mono text-xs font-medium">{patch.file_path}</code>
               <span className="text-muted text-xs">
                 {patch.addresses_findings}{' '}
@@ -597,7 +603,7 @@ function ChecksTab({ patches }: { patches: Patch[] }) {
               </span>
             </header>
 
-            <p className="border-border-muted text-muted border-b px-4 py-2 font-mono text-xs">
+            <p className="border-base-300 text-muted border-b px-4 py-2 font-mono text-xs">
               {patch.validation_output}
             </p>
 

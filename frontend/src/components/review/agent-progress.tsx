@@ -22,7 +22,7 @@ export function AgentProgress({
 }) {
   if (stages.length === 0) {
     return (
-      <div className="border-border-default bg-surface-raised text-muted flex items-center gap-2 rounded-xl border px-4 py-3 text-sm shadow-[var(--shadow-card)]">
+      <div className="border-base-300 bg-base-100 text-muted flex items-center gap-2 rounded-box border px-4 py-3 text-sm">
         <Spinner />
         {connected
           ? // Progress events are not replayed, so a client that connects
@@ -39,9 +39,9 @@ export function AgentProgress({
     <section
       aria-label="Review progress"
       aria-live="polite"
-      className="border-border-default overflow-hidden rounded-xl border shadow-[var(--shadow-card)]"
+      className="border-base-300 bg-base-100 overflow-hidden rounded-box border"
     >
-      <header className="border-border-default bg-surface flex items-center justify-between border-b px-4 py-2">
+      <header className="border-base-300 bg-base-100 flex items-center justify-between border-b px-4 py-2.5">
         <span className="text-sm font-medium">
           {running > 0
             ? `${running} ${running === 1 ? 'stage running' : 'stages running'}`
@@ -52,17 +52,17 @@ export function AgentProgress({
         </span>
       </header>
 
-      <ul className="divide-border-muted divide-y">
+      <ul className="divide-base-300 divide-y">
         {stages.map((stage) => (
           <li
             key={stage.stage}
             className={cn(
-              'bg-surface-raised flex items-center gap-3 px-4 py-2',
-              stage.status === 'running' && 'bg-accent-soft',
+              'bg-base-100 flex items-center gap-3 px-4 py-2.5',
+              stage.status === 'running' && 'bg-primary/10',
             )}
           >
             {stage.status === 'running' ? (
-              <Loader2 aria-hidden className="text-accent size-4 shrink-0 animate-spin" />
+              <Loader2 aria-hidden className="text-primary size-4 shrink-0 animate-spin" />
             ) : (
               <Check aria-hidden className="text-verified size-4 shrink-0" />
             )}

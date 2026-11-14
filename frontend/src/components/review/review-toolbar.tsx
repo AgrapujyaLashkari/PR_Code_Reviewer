@@ -41,7 +41,7 @@ export function ReviewToolbar({
   const present = SEVERITY_ORDER.filter((severity) => counts[severity] > 0);
 
   return (
-    <div className="bg-background/85 border-border-default sticky top-[var(--app-header-height)] z-30 -mx-4 mb-4 border-b px-4 py-2.5 backdrop-blur">
+    <div className="bg-base-200/90 border-base-300 sticky top-[var(--app-header-height)] z-30 -mx-4 mb-4 border-b px-4 py-2.5 backdrop-blur-md">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <p className="text-sm font-medium tabular-nums">
           {fileCount} {fileCount === 1 ? 'file' : 'files'}
@@ -59,10 +59,8 @@ export function ReviewToolbar({
                     aria-pressed={isActive}
                     onClick={() => onToggleSeverity(severity)}
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs transition-colors',
-                      isActive
-                        ? 'border-accent bg-accent-soft text-foreground font-medium'
-                        : 'border-border-default text-muted hover:border-accent-ring hover:text-foreground',
+                      'btn btn-xs rounded-full',
+                      isActive ? 'btn-primary btn-soft' : 'btn-ghost',
                     )}
                   >
                     <span
@@ -90,7 +88,7 @@ export function ReviewToolbar({
               onChange={(event) => onQueryChange(event.target.value)}
               placeholder="Search files…"
               aria-label="Search files"
-              className="border-border-default bg-surface placeholder:text-muted hover:border-accent-ring focus:border-accent h-7 w-40 rounded-md border pr-2 pl-7 text-xs transition-colors focus:outline-none sm:w-52"
+              className="input input-sm placeholder:text-muted h-8 w-40 pl-7 sm:w-52"
             />
           </div>
           <Button size="sm" variant="ghost" onClick={onExpandAll}>

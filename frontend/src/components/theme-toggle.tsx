@@ -16,15 +16,30 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   const dark = mounted && resolvedTheme === 'dark';
 
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        className={cn('btn btn-ghost btn-square', className)}
+        aria-label="Toggle theme"
+        disabled
+      />
+    );
+  }
+
   return (
     <button
       type="button"
-      className={cn('btn btn-ghost btn-square', className)}
+      className={cn(
+        'swap swap-rotate btn btn-ghost btn-square',
+        dark && 'swap-active',
+        className,
+      )}
       aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}
-      disabled={!mounted}
       onClick={() => setTheme(dark ? 'light' : 'dark')}
     >
-      {dark ? <Sun aria-hidden className="size-4" /> : <Moon aria-hidden className="size-4" />}
+      <Sun aria-hidden className="swap-on size-4" />
+      <Moon aria-hidden className="swap-off size-4" />
     </button>
   );
 }

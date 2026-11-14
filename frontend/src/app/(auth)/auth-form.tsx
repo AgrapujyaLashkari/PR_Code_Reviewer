@@ -21,7 +21,7 @@ type Mode = 'login' | 'register';
 
 const COPY = {
   login: {
-    title: 'Sign in',
+    title: 'Welcome back',
     submit: 'Sign in with email',
     switchText: "Don't have an account?",
     switchLabel: 'Register',
@@ -87,51 +87,68 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <main id="main" className="grid min-h-screen lg:grid-cols-2">
-      <section className="bg-base-200 hidden flex-col justify-between p-10 pb-16 lg:flex">
-        <Link href="/" className="flex items-center gap-2.5 text-sm font-semibold">
+      <section
+        data-theme="dark"
+        className="relative hidden flex-col justify-between overflow-hidden bg-[#0b1220] p-10 pb-12 lg:flex"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 80% 50% at 0% 0%, color-mix(in oklab, var(--color-primary) 28%, transparent), transparent 55%)',
+          }}
+        />
+
+        <Link href="/" className="relative flex items-center gap-2.5 text-sm font-semibold tracking-tight">
           <Logo size={22} />
           ReviewPulse
         </Link>
 
-        <div className="max-w-lg">
-          <h2 className="text-3xl font-semibold tracking-tight">
+        <div className="relative max-w-lg">
+          <h2 className="text-[2.125rem] leading-tight font-semibold tracking-tight">
             GitHub PRs reviewed automatically.
           </h2>
-          <p className="text-muted mt-3 text-sm leading-relaxed">
-            Install the app on a repository. Agents check security and quality, then static
-            tools confirm what they find.
+          <p className="text-base-content/65 mt-4 max-w-md text-sm leading-relaxed">
+            Install the app on a repository. Agents check security and quality, then
+            static tools confirm what they find.
           </p>
-          <div className="mockup-code bg-neutral text-neutral-content mt-8 text-sm">
-            <pre data-prefix="38">
-              <code>query += username</code>
+
+          <div className="border-base-300 bg-base-100/60 mt-10 overflow-hidden rounded-box border backdrop-blur-sm">
+            <div className="border-base-300 text-base-content/50 flex items-center gap-2 border-b px-4 py-2 font-mono text-[11px]">
+              <span className="bg-error/80 size-1.5 rounded-full" />
+              accounts.py
+              <span className="ml-auto">L38</span>
+            </div>
+            <pre className="code-surface px-4 py-3 text-[13px]">
+              <code className="text-base-content/80">query += username</code>
             </pre>
-            <pre data-prefix="!" className="bg-error text-error-content">
-              <code>SQL injection — user input concatenated into SQL</code>
-            </pre>
-            <pre data-prefix="✓" className="text-success">
-              <code>bandit confirmed · high</code>
-            </pre>
+            <div className="border-error/30 bg-error/10 border-t px-4 py-3">
+              <p className="text-sm font-medium">SQL injection — user input concatenated into SQL</p>
+              <p className="text-success mt-1 text-xs font-medium">Confirmed by bandit · high</p>
+            </div>
           </div>
         </div>
 
-        <p className="text-muted text-sm">No personal access token required</p>
+        <p className="text-base-content/45 relative text-sm">No personal access token required</p>
       </section>
 
-      <section className="relative flex items-center justify-center px-4 py-16">
+      <section className="bg-base-200 relative flex items-center justify-center px-4 py-16">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-sm">
+        <div className="card card-border bg-base-100 w-full max-w-md shadow-sm">
+          <div className="card-body p-7 sm:p-8">
           <div className="mb-8 lg:hidden">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight">
               <Logo size={20} />
               ReviewPulse
             </Link>
           </div>
 
           <h1 className="text-title">{copy.title}</h1>
-          <p className="text-muted mt-1 mb-6 text-sm leading-relaxed">
+          <p className="text-muted mt-2 mb-8 text-sm leading-relaxed">
             Use GitHub to connect repositories, or continue with email.
           </p>
 
@@ -143,9 +160,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
             Sign in with GitHub
           </a>
 
-          <div className="divider text-base-content/40 text-xs">or</div>
+          <div className="divider text-base-content/40 my-6 text-xs">or</div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-2" noValidate>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-1" noValidate>
             {formError !== undefined && <Alert>{formError}</Alert>}
 
             <Field
@@ -170,18 +187,19 @@ export function AuthForm({ mode }: { mode: Mode }) {
               hint={mode === 'register' ? 'At least 8 characters' : undefined}
             />
 
-            <Button type="submit" className="btn-block mt-2" disabled={submitting}>
+            <Button type="submit" variant="neutral" className="btn-block mt-3" disabled={submitting}>
               {submitting && <Spinner />}
               {copy.submit}
             </Button>
           </form>
 
-          <p className="text-muted mt-5 text-center text-sm">
+          <p className="text-muted mt-6 text-center text-sm">
             {copy.switchText}{' '}
             <Link href={copy.switchHref} className="link link-primary">
               {copy.switchLabel}
             </Link>
           </p>
+          </div>
         </div>
       </section>
     </main>

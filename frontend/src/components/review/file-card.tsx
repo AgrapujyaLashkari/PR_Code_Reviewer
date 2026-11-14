@@ -80,11 +80,11 @@ export function FileCard({
       // an overflowed ancestor becomes the sticky containing block, and the
       // header below would stop pinning. The corners are rounded per-child.
       // Scrolling to a file must not tuck its header under the sticky toolbar.
-      className="border-border-default bg-surface-raised scroll-mt-[calc(var(--app-header-height)+var(--review-toolbar-height)+1rem)] rounded-lg border"
+      className="border-base-300 bg-base-100 scroll-mt-[calc(var(--app-header-height)+var(--review-toolbar-height)+1rem)] rounded-box border"
     >
       <header
         className={cn(
-          'bg-surface border-border-default z-20 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-t-lg border-b px-3 py-2',
+          'bg-base-100 border-base-300 z-20 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-t-[0.875rem] border-b px-3 py-2.5',
           // Only pinned on wide screens: below `lg` the review toolbar wraps
           // to two rows, so the offset it would pin against is no longer true.
           'lg:sticky lg:top-[calc(var(--app-header-height)+var(--review-toolbar-height))]',

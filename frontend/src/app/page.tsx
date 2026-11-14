@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <main
       id="main"
-      className="text-base-content/60 flex min-h-screen items-center justify-center gap-2 text-sm"
+      className="bg-base-200 text-muted flex min-h-screen items-center justify-center gap-2 text-sm"
     >
       <Spinner />
       Loading…

@@ -28,7 +28,8 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
   const staticOnly = stats.by_origin.static ?? 0;
 
   return (
-    <Card className="p-4">
+    <Card>
+      <div className="card-body p-5">
       <h2 className="text-eyebrow">Review summary</h2>
 
       <div className="mt-3 flex items-center gap-3">
@@ -97,7 +98,7 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
 
       {settled && (
         <>
-          <hr className="border-border-muted my-4" />
+          <hr className="border-base-300 my-4" />
 
           <h3 className="text-eyebrow">Evidence source</h3>
           <dl className="mt-2 space-y-1.5 text-xs">
@@ -130,7 +131,7 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
 
       {Object.keys(stats.by_layer).length > 0 && (
         <>
-          <hr className="border-border-muted my-4" />
+          <hr className="border-base-300 my-4" />
           <h3 className="text-eyebrow">Layer distribution</h3>
           <dl className="mt-2 space-y-1.5 text-xs">
             {Object.entries(stats.by_layer)
@@ -145,7 +146,7 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
         </>
       )}
 
-      <hr className="border-border-muted my-4" />
+      <hr className="border-base-300 my-4" />
 
       <dl className="text-muted space-y-1.5 text-xs">
         <div className="flex justify-between gap-2">
@@ -165,6 +166,7 @@ export function SummaryPanel({ review }: { review: ReviewDetail }) {
           </dd>
         </div>
       </dl>
+      </div>
     </Card>
   );
 }
@@ -189,7 +191,7 @@ function RiskDial({ score, color }: { score: number | undefined; color: string }
         cx="24"
         cy="24"
         r={radius}
-        stroke="var(--border)"
+        stroke="var(--color-base-300)"
         strokeWidth="4"
         strokeLinecap="round"
       />

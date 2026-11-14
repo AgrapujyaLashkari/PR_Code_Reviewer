@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 
-import { Alert, Button, Card, Select, Spinner } from '@/components/ui/primitives';
+import { Alert, Button, Card, Page, PageHeader, Select, Spinner } from '@/components/ui/primitives';
 import { ApiError, api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { SEVERITY_LABEL, SEVERITY_ORDER } from '@/lib/display';
@@ -46,94 +46,101 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-8">
-      <h1 className="text-title">Settings</h1>
-      <p className="text-muted mt-1 text-sm">Model, severity, and GitHub connection.</p>
+    <Page className="max-w-2xl">
+      <PageHeader
+        title="Settings"
+        description="Model, severity, and GitHub connection."
+      />
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {message !== undefined && <Alert tone="success">{message}</Alert>}
         {error !== undefined && <Alert>{error}</Alert>}
 
-        <Card className="flex flex-col gap-4 p-4">
-          <h2 className="text-eyebrow">Model</h2>
+        <Card>
+          <div className="card-body gap-5 p-6">
+            <h2 className="text-eyebrow">Model</h2>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="model" className="text-sm font-medium">
-              Review model
-            </label>
-            <Select
-              id="model"
-              value={model}
-              onChange={(event) => setModel(event.target.value)}
-            >
-              <option value="">
-                Server default
-                {capabilities !== undefined && ` (${capabilities.default_model})`}
-              </option>
-              {capabilities?.available_models.map((name) => (
-                <option key={name} value={name}>
-                  {name}
+            <fieldset className="fieldset p-0">
+              <label htmlFor="model" className="fieldset-legend pt-0">
+                Review model
+              </label>
+              <Select
+                id="model"
+                value={model}
+                onChange={(event) => setModel(event.target.value)}
+              >
+                <option value="">
+                  Server default
+                  {capabilities !== undefined && ` (${capabilities.default_model})`}
                 </option>
-              ))}
-            </Select>
-            <p className="text-muted text-xs">
-              {capabilities?.llm_reachable === false
-                ? 'GEMINI_API_KEY is missing or Gemini is unreachable.'
-                : 'Reviews run on the Gemini API.'}
-            </p>
-          </div>
+                {capabilities?.available_models.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
+              <p className="label">
+                {capabilities?.llm_reachable === false
+                  ? 'GEMINI_API_KEY is missing or Gemini is unreachable.'
+                  : 'Reviews run on the Gemini API.'}
+              </p>
+            </fieldset>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="severity" className="text-sm font-medium">
-              Minimum severity to show
-            </label>
-            <Select
-              id="severity"
-              value={minSeverity}
-              onChange={(event) => setMinSeverity(event.target.value)}
-            >
-              {SEVERITY_ORDER.map((severity) => (
-                <option key={severity} value={severity}>
-                  {SEVERITY_LABEL[severity]}
-                </option>
-              ))}
-            </Select>
+            <fieldset className="fieldset p-0">
+              <label htmlFor="severity" className="fieldset-legend pt-0">
+                Minimum severity to show
+              </label>
+              <Select
+                id="severity"
+                value={minSeverity}
+                onChange={(event) => setMinSeverity(event.target.value)}
+              >
+                {SEVERITY_ORDER.map((severity) => (
+                  <option key={severity} value={severity}>
+                    {SEVERITY_LABEL[severity]}
+                  </option>
+                ))}
+              </Select>
+            </fieldset>
           </div>
         </Card>
 
-        <Card className="flex flex-col gap-3 p-4">
-          <h2 className="text-eyebrow">GitHub</h2>
-          {user?.github_login ? (
-            <p className="text-sm">
-              Signed in as <span className="font-mono">@{user.github_login}</span>
-              {user.github_connected ? ' · GitHub App installed' : ' · App not installed yet'}
-            </p>
-          ) : (
-            <p className="text-muted text-sm">
-              Sign in with GitHub, then install the app on the repositories to review.
-            </p>
-          )}
-          <Button asChild type="button" variant="primary">
-            <Link href="/repos">Manage repositories</Link>
-          </Button>
+        <Card>
+          <div className="card-body gap-3 p-6">
+            <h2 className="text-eyebrow">GitHub</h2>
+            {user?.github_login ? (
+              <p className="text-sm">
+                Signed in as <span className="font-mono">@{user.github_login}</span>
+                {user.github_connected ? ' · GitHub App installed' : ' · App not installed yet'}
+              </p>
+            ) : (
+              <p className="text-muted text-sm">
+                Sign in with GitHub, then install the app on the repositories to review.
+              </p>
+            )}
+            <div className="card-actions">
+              <Button asChild type="button" variant="primary">
+                <Link href="/repos">Manage repositories</Link>
+              </Button>
+            </div>
+          </div>
         </Card>
 
         {capabilities !== undefined && (
-          <Card className="p-4">
-            <h2 className="text-eyebrow">Active static analysis tools</h2>
-            <p className="text-muted mt-2 text-xs">
-              Agent findings can only be cross-checked with these tools.
-            </p>
-            <ul className="mt-2 flex flex-wrap gap-1.5">
-              {capabilities.static_analysers.map((tool) => (
-                <li
-                  key={tool}
-                  className="bg-verified-soft text-verified border-verified-ring rounded-md border px-2 py-0.5 font-mono text-xs"
-                >
-                  {tool}
-                </li>
-              ))}
-            </ul>
+          <Card>
+            <div className="card-body p-6">
+              <h2 className="text-eyebrow">Active static analysis tools</h2>
+              <p className="text-muted mt-2 text-xs">
+                Agent findings can only be cross-checked with these tools.
+              </p>
+              <ul className="mt-3 flex flex-wrap gap-1.5">
+                {capabilities.static_analysers.map((tool) => (
+                  <li key={tool} className="badge badge-success badge-soft font-mono">
+                    {tool}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </Card>
         )}
 
@@ -144,6 +151,6 @@ export default function SettingsPage() {
           </Button>
         </div>
       </form>
-    </div>
+    </Page>
   );
 }

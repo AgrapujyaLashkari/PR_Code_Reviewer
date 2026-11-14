@@ -17,9 +17,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading || user === undefined) {
     return (
-      <main className="text-base-content/60 flex min-h-screen items-center justify-center gap-2 text-sm">
-        <Spinner />
-        Checking session…
+      <main className="bg-base-200 flex min-h-screen">
+        <aside className="border-base-300 bg-base-100 hidden w-[var(--sidebar-width)] border-r lg:block">
+          <div className="p-5">
+            <div className="skeleton h-6 w-36" />
+          </div>
+          <div className="space-y-2 px-4">
+            <div className="skeleton h-11 w-full" />
+            <div className="skeleton h-11 w-full" />
+            <div className="skeleton h-11 w-full" />
+          </div>
+        </aside>
+        <div className="text-muted flex flex-1 items-center justify-center gap-2 text-sm">
+          <Spinner />
+          Checking session…
+        </div>
       </main>
     );
   }

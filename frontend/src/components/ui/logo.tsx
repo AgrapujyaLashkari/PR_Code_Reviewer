@@ -34,7 +34,7 @@ export function Logo({ size = 20, className }: LogoProps) {
       <rect x="4" y="5" width="3" height="22" rx="1.5" fill="currentColor" />
       <rect x="11" y="6" width="17" height="3" rx="1.5" fill="currentColor" />
       <rect x="11" y="14.5" width="9" height="3" rx="1.5" fill="currentColor" />
-      <circle cx="25" cy="16" r="2.75" fill="var(--verified)" />
+      <circle cx="25" cy="16" r="2.75" fill="var(--color-primary)" />
       <rect x="11" y="23" width="13" height="3" rx="1.5" fill="currentColor" />
     </svg>
   );

@@ -9,12 +9,14 @@ import './globals.css';
 const plexSans = IBM_Plex_Sans({
   variable: '--font-plex-sans',
   subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
 });
 const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains-mono',
   subsets: ['latin', 'latin-ext'],
   weight: ['400', '500'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -34,7 +36,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${plexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full">
+      <body className={`${plexSans.className} min-h-full`}>
         <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
           Skip to content
         </a>
